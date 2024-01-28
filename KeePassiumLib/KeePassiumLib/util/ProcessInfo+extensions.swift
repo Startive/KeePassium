@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -7,32 +7,32 @@
 //  For commercial licensing, please contact the author.
 
 extension ProcessInfo {
-    
+
     public static var isRunningOnMac: Bool {
         return isiPadAppOnMac || isCatalystApp
     }
-    
+
     public static var isiPadAppOnMac: Bool {
         guard #available(iOS 14, *) else {
             return false
         }
         return ProcessInfo.processInfo.isiOSAppOnMac
     }
-    
+
     public static var isCatalystApp: Bool {
         guard #available(iOS 13, *) else {
             return false
         }
         return ProcessInfo.processInfo.isMacCatalystApp && !isiPadAppOnMac
     }
-    
+
     public static var isTestFlightApp: Bool {
         assert(AppGroup.isMainApp, "This won't work correctly in extensions.")
         guard isCatalystApp else {
             let lastPathComp = Bundle.main.appStoreReceiptURL?.lastPathComponent
             return lastPathComp == "sandboxReceipt"
         }
-        
+
         #if targetEnvironment(macCatalyst)
         /* Based on https://gist.github.com/lukaskubanek/cbfcab29c0c93e0e9e0a16ab09586996 */
         var code: SecStaticCode?

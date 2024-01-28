@@ -136,6 +136,9 @@
 /* Message to confirm deletion of a database file. (This deletes the file itself) */
 "[Database/Delete/Confirm/text] Delete database file?\n Make sure you have a backup." = "Supprimer le fichier de la base de données ?\nAssurez-vous d'avoir une sauvegarde.";
 
+/* Parameter name in database encryption settings. This is a term, see https://en.wikipedia.org/wiki/Key_derivation_function. Example: 'Key Derivation Function: Argon2' */
+"[Database/EncryptionSettings/kdf]" = "Fonction de dérivation de clé";
+
 /* Notification when user tries to copy data from KDBX to older KDB database. */
 "[Database/LesserTargetFormat/warning]" = "Il s'agit d'un ancien format de base de données, certaines données pourraient être perdues.";
 
@@ -171,6 +174,9 @@
 
 /* Status message: loading a database */
 "[Database/Loading/Status] Loading..." = "Chargement en cours…";
+
+/* Action/button: change master key of a database. */
+"[Database/MasterKey/Change/action]" = "Modifier la clé principale";
 
 /* Notification after changing database master key */
 "[Database/MasterKey/changed] Master key successfully changed" = "La clé principale a été modifiée avec succès";
@@ -222,6 +228,9 @@
 
 /* Message to confirm removal of database file from the app. (This keeps the file, but removes its reference from the app.) */
 "[Database/Remove/Confirm/text] Remove database from the list?\n The file will remain intact and you can add it again later." = "Retirer la base de données de la liste ?\nLe fichier restera intact et vous pourrez l'ajouter à nouveau ultérieurement.";
+
+/* Action/button to save the current database. */
+"[Database/Save/action] Save Database" = "Enregistrer la base de données";
 
 /* Status message: finished saving a database */
 "[Database/Saving/Status] Done" = "Fait";
@@ -456,6 +465,9 @@
 
 /* Notification/confirmation message */
 "[Diagnostics] Diagnostic log has been copied to clipboard." = "Le journal de diagnostic a été copié dans le presse-papiers.";
+
+/* Action: select a different icon for an item */
+"[EditEntry/Icon/change]" = "Changer l'icône";
 
 /* Action: choose a username from a list */
 "[EditEntry/UserName/choose]" = "Choisir";
@@ -865,6 +877,9 @@
 /* Title of an warning message */
 "[Generic/title] Warning" = "Avertissement";
 
+/* Warning message template. Swap the icon and message for right-to-left languages. */
+"[Generic/WarningWithIcon/template]" = "⚠️ %@";
+
 /* VoiceOver description of a group [groupTitle: String, itemCount: Int] */
 "[Group/a11y/description]" = "%@, Groupe";
 
@@ -885,6 +900,9 @@
 
 /* Title of the confirmation dialog for `Empty Recycle Bin` action */
 "[Group/RecycleBin/Empty/confirmTitle]" = "Supprimer définitivement tout ce qui se trouve dans la corbeille ?";
+
+/* Title of an input field for group name */
+"[GroupEditor/Name/placeholder]" = "Nom du groupe";
 
 /* An option in Group Viewer settings. Example: 'Sort Order: By Creation Date (New..Old)' */
 "[GroupSortOrder/longTitle] By Creation Date (New..Old)" = "Par date de création (nouveau - ancien)";
@@ -933,6 +951,21 @@
 
 /* Notification that an archived/historical item (e.g entry) has been successfully restored */
 "[Item/History/Restored]" = "Version précédente restaurée";
+
+/* Title of a list with advanced/expert-level properties of a database item (e.g. entry) */
+"[Item/Properties/Advanced/title]" = "Avancé";
+
+/* Possible value of the `Password AutoFill` setting. For example: 'Password AutoFill: Allowed' */
+"[Item/Properties/AutoFill/allowed]" = "Autorisé";
+
+/* Possible value of the `Password Audit` setting. For example: 'Password Audit: Allowed' */
+"[Item/Properties/PasswordAudit/allowed]" = "Autorisé";
+
+/* Possible value of the `Search` setting. Example: 'Search: Allowed' */
+"[Item/Properties/Search/allowed]" = "Autorisé";
+
+/* Title of a setting: whether the item (e.g. entry) should be considered during search. Example: 'Search: Allowed' */
+"[Item/Properties/Search/title] Search" = "Recherche";
 
 /* Name of an entry/group category (visual style): default one, like in KeePass */
 "[ItemCategory] Default (KeePass)" = "Par défaut (KeePass)";

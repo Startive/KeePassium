@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2022 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -11,7 +11,7 @@ public enum PasswordGeneratorError: LocalizedError {
     case desiredLengthTooShort(minimum: Int)
     case notEnoughElementsToSample
     case maxConsecutiveNotSatisfiable
-    
+
     public var errorDescription: String? {
         switch self {
         case .requiredSetCompletelyExcluded:
@@ -29,8 +29,9 @@ public enum PasswordGeneratorError: LocalizedError {
 }
 
 public extension LString {
+    // swiftlint:disable line_length
     enum PasswordGeneratorError {
-        public static let titleCannotGenerateText =  NSLocalizedString(
+        public static let titleCannotGenerateText = NSLocalizedString(
             "[PasswordGenerator/CannotGenerateText/title]",
             bundle: Bundle.framework,
             value: "Cannot generate text",
@@ -61,4 +62,5 @@ public extension LString {
             comment: "Error message/call to action from the random text generator."
         )
     }
+    // swiftlint:enable line_length
 }

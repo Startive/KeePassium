@@ -136,6 +136,9 @@
 /* Message to confirm deletion of a database file. (This deletes the file itself) */
 "[Database/Delete/Confirm/text] Delete database file?\n Make sure you have a backup." = "删除数据库文件?\n 请确保您有备份文件!";
 
+/* Parameter name in database encryption settings. This is a term, see https://en.wikipedia.org/wiki/Key_derivation_function. Example: 'Key Derivation Function: Argon2' */
+"[Database/EncryptionSettings/kdf]" = "密匙演算函数";
+
 /* Notification when user tries to copy data from KDBX to older KDB database. */
 "[Database/LesserTargetFormat/warning]" = "这是旧版的数据库格式，有些数据可能会丢失。";
 
@@ -165,6 +168,9 @@
 
 /* Status message: loading a database */
 "[Database/Loading/Status] Loading..." = "载入中...";
+
+/* Action/button: change master key of a database. */
+"[Database/MasterKey/Change/action]" = "变更主密钥";
 
 /* Notification after changing database master key */
 "[Database/MasterKey/changed] Master key successfully changed" = "主密码修改成功";
@@ -213,6 +219,9 @@
 
 /* Message to confirm removal of database file from the app. (This keeps the file, but removes its reference from the app.) */
 "[Database/Remove/Confirm/text] Remove database from the list?\n The file will remain intact and you can add it again later." = "从列表中删除数据库?\n 不会对文件进行更改或删除, 您可以在稍后添加回来。";
+
+/* Action/button to save the current database. */
+"[Database/Save/action] Save Database" = "保存数据库";
 
 /* Status message: finished saving a database */
 "[Database/Saving/Status] Done" = "完成";
@@ -444,6 +453,9 @@
 
 /* Notification/confirmation message */
 "[Diagnostics] Diagnostic log has been copied to clipboard." = "诊断日志复制到剪贴板成功。";
+
+/* Action: select a different icon for an item */
+"[EditEntry/Icon/change]" = "变更图示";
 
 /* Action: choose a username from a list */
 "[EditEntry/UserName/choose]" = "选择";
@@ -847,6 +859,9 @@
 /* Title of an warning message */
 "[Generic/title] Warning" = "警告";
 
+/* Warning message template. Swap the icon and message for right-to-left languages. */
+"[Generic/WarningWithIcon/template]" = "⚠️ %@";
+
 /* VoiceOver description of a group [groupTitle: String, itemCount: Int] */
 "[Group/a11y/description]" = "%@, 群组";
 
@@ -861,6 +876,9 @@
 
 /* Default name of a new group */
 "[Group/New/defaultName] New Group" = "新建群组";
+
+/* Title of an input field for group name */
+"[GroupEditor/Name/placeholder]" = "组名";
 
 /* An option in Group Viewer settings. Example: 'Sort Order: By Creation Date (New..Old)' */
 "[GroupSortOrder/longTitle] By Creation Date (New..Old)" = "按创建日期(新...旧)";
@@ -909,6 +927,21 @@
 
 /* Notification that an archived/historical item (e.g entry) has been successfully restored */
 "[Item/History/Restored]" = "已还原上一个版本";
+
+/* Title of a list with advanced/expert-level properties of a database item (e.g. entry) */
+"[Item/Properties/Advanced/title]" = "高级选项";
+
+/* Possible value of the `Password AutoFill` setting. For example: 'Password AutoFill: Allowed' */
+"[Item/Properties/AutoFill/allowed]" = "已允许";
+
+/* Possible value of the `Password Audit` setting. For example: 'Password Audit: Allowed' */
+"[Item/Properties/PasswordAudit/allowed]" = "已允许";
+
+/* Possible value of the `Search` setting. Example: 'Search: Allowed' */
+"[Item/Properties/Search/allowed]" = "已允许";
+
+/* Title of a setting: whether the item (e.g. entry) should be considered during search. Example: 'Search: Allowed' */
+"[Item/Properties/Search/title] Search" = "搜索​​​​";
 
 /* Name of an entry/group category (visual style): default one, like in KeePass */
 "[ItemCategory] Default (KeePass)" = "默认(KeePass)";

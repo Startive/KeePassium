@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -18,9 +18,9 @@ class AppInfo {
         let version: String
         let build: String
     }
-    
+
     private static let nvb = loadInfo()
-    
+
     private static func loadInfo() -> NameVersionBuild {
         let appName = Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String ?? "KeePassium"
         let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0"

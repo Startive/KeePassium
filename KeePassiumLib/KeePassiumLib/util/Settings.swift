@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -14,11 +14,11 @@ public protocol SettingsObserver: AnyObject {
 
 public class SettingsNotifications {
     public weak var observer: SettingsObserver?
-    
+
     public init(observer: SettingsObserver? = nil) {
         self.observer = observer
     }
-    
+
     public func startObserving() {
         NotificationCenter.default.addObserver(
             self,
@@ -26,18 +26,19 @@ public class SettingsNotifications {
             name: Settings.Notifications.settingsChanged,
             object: nil)
     }
-    
+
     public func stopObserving() {
         NotificationCenter.default.removeObserver(
             self,
             name: Settings.Notifications.settingsChanged,
             object: nil)
     }
-    
+
     @objc private func settingsDidChange(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
-            let keyString = userInfo[Settings.Notifications.userInfoKey] as? String else { return }
-        
+              let keyString = userInfo[Settings.Notifications.userInfoKey] as? String
+        else { return }
+
         guard let key = Settings.Keys(rawValue: keyString) else {
             assertionFailure("Unknown Settings.Keys value: \(keyString)")
             return
@@ -49,14 +50,14 @@ public class SettingsNotifications {
 public class Settings {
     public static let latestVersion = 4
     public static let current = Settings()
-    
+
     public enum Keys: String {
         case testEnvironment
         case settingsVersion
         case bundleCreationTimestamp
         case bundleModificationTimestamp
         case firstLaunchTimestamp
-        
+
         case filesSortOrder
         case backupFilesVisible
 
@@ -77,7 +78,7 @@ public class Settings {
         case databaseLockTimeout
         case lockDatabasesOnTimeout
         case passcodeKeyboardType
-        
+
         case clipboardTimeout
         case universalClipboardEnabled
 
@@ -87,7 +88,7 @@ public class Settings {
         case entryViewerPage
         case hideProtectedFields
         case collapseNotesField
-        
+
         case startWithSearch
         case searchFieldNames
         case searchProtectedValues
@@ -96,21 +97,22 @@ public class Settings {
         case backupDatabaseOnSave
         case backupKeepingDuration
         case excludeBackupFilesFromSystemBackup
-        
+
         case autoFillFinishedOK
         case copyTOTPOnAutoFill
         case autoFillPerfectMatch
         case acceptAutoFillInput
         case quickTypeEnabled
-        
+
         case hapticFeedbackEnabled
-        
+
         case passwordGeneratorConfig
-        
+
         case networkAccessAllowed
-        
+
         case hideAppLockSetupReminder
         case textScale
+        case entryTextFontDescriptor
     }
 
     fileprivate enum Notifications {
@@ -118,18 +120,18 @@ public class Settings {
         static let userInfoKey = "changedKey" 
     }
 
-    
+
     public enum AppLockTimeout: Int {
         public enum TriggerMode {
             case userIdle
             case appMinimized
         }
-        
+
         public static let allValues = [
             immediately,
             after3seconds, after15seconds, after30seconds,
             after1minute, after2minutes, after5minutes]
-        
+
         case never = -1 
         case immediately = 0
         case almostImmediately = 2 /* workaround for some bugs with `immediately` */
@@ -139,11 +141,18 @@ public class Settings {
         case after1minute = 60
         case after2minutes = 120
         case after5minutes = 300
-        
+
         public var seconds: Int {
             return self.rawValue
         }
-        
+
+        static func nearest(forSeconds seconds: Int) -> AppLockTimeout {
+            let result = Self.allValues.min(by: { item1, item2 in
+                return abs(item1.seconds - seconds) < abs(item2.seconds - seconds)
+            })
+            return result! 
+        }
+
         public var triggerMode: TriggerMode {
             switch self {
             case .never,
@@ -155,7 +164,7 @@ public class Settings {
                 return .userIdle
             }
         }
-        
+
         public var fullTitle: String {
             switch self {
             case .never:
@@ -231,11 +240,18 @@ public class Settings {
         public var seconds: Int {
             return self.rawValue
         }
-        
+
+        static func nearest(forSeconds seconds: Int) -> DatabaseLockTimeout {
+            let result = Self.allValues.min(by: { item1, item2 in
+                return abs(item1.seconds - seconds) < abs(item2.seconds - seconds)
+            })
+            return result! 
+        }
+
         public static func < (a: DatabaseLockTimeout, b: DatabaseLockTimeout) -> Bool {
             return a.seconds < b.seconds
         }
-        
+
         public var fullTitle: String {
             switch self {
             case .never:
@@ -283,7 +299,7 @@ public class Settings {
             }
         }
     }
-    
+
     public enum ClipboardTimeout: Int {
         public static let allValues = [
             after10seconds, after20seconds, after30seconds, after1minute, after2minutes,
@@ -302,7 +318,14 @@ public class Settings {
         public var seconds: Int {
             return self.rawValue
         }
-        
+
+        static func nearest(forSeconds seconds: Int) -> ClipboardTimeout {
+            let result = Self.allValues.min(by: { item1, item2 in
+                return abs(item1.seconds - seconds) < abs(item2.seconds - seconds)
+            })
+            return result! 
+        }
+
         public var fullTitle: String {
             switch self {
             case .never:
@@ -346,7 +369,7 @@ public class Settings {
             }
         }
     }
-    
+
     public enum BackupKeepingDuration: Int {
         public static let allValues: [BackupKeepingDuration] = [
             .forever, _1year, _6months, _2months, _4weeks, _1week, _1day, _4hours, _1hour
@@ -369,7 +392,14 @@ public class Settings {
                 return TimeInterval(self.rawValue)
             }
         }
-        
+
+        static func nearest(forSeconds seconds: Int) -> BackupKeepingDuration {
+            let result = Self.allValues.min(by: { item1, item2 in
+                return abs(item1.rawValue - seconds) < abs(item2.rawValue - seconds)
+            })
+            return result! 
+        }
+
         public var shortTitle: String {
             switch self {
             case .forever:
@@ -378,6 +408,7 @@ public class Settings {
                     bundle: Bundle.framework,
                     value: "Forever",
                     comment: "An option in Settings. Please keep it short. Will be shown as 'Keep Backup Files: Forever'")
+                    // swiftlint:disable:previous line_length
             default:
                 let formatter = DateComponentsFormatter()
                 formatter.allowedUnits = [.year, .month, .day, .hour]
@@ -391,23 +422,24 @@ public class Settings {
                 return result
             }
         }
-        
+
         public var fullTitle: String {
             return shortTitle
         }
     }
-    
+
     public enum EntryListDetail: Int {
         public static let allValues = [none, userName, password, url, notes, lastModifiedDate]
-        
+
         case none
         case userName
         case password
         case url
         case notes
         case lastModifiedDate
-        
+
         public var longTitle: String {
+            // swiftlint:disable line_length
             switch self {
             case .none:
                 return NSLocalizedString(
@@ -446,16 +478,17 @@ public class Settings {
                     value: "Last Modified Date",
                     comment: "An option in Group Viewer settings. Refers fo the most recent time when the entry was modified. Will be shown as 'Entry Subtitle: Last Modified Date'.")
             }
+            // swiftlint:enable line_length
         }
     }
-    
+
     public enum GroupSortOrder: Int {
         public static let allValues = [
             noSorting,
             nameAsc, nameDesc,
             creationTimeDesc, creationTimeAsc,
             modificationTimeDesc, modificationTimeAsc]
-        
+
         case noSorting
         case nameAsc
         case nameDesc
@@ -463,7 +496,7 @@ public class Settings {
         case creationTimeDesc
         case modificationTimeAsc
         case modificationTimeDesc
-        
+
         public var isAscending: Bool? {
             switch self {
             case .noSorting:
@@ -474,8 +507,9 @@ public class Settings {
                 return false
             }
         }
-        
+
         public var longTitle: String {
+            // swiftlint:disable line_length
             switch self {
             case .noSorting:
                 return NSLocalizedString(
@@ -520,6 +554,7 @@ public class Settings {
                     value: "By Modification Date (New..Old)",
                     comment: "An option in Group Viewer settings. Example: 'Sort Order: By Modification Date (New..Old)'")
             }
+            // swiftlint:enable line_length
         }
         public func compare(_ group1: Group, _ group2: Group) -> Bool {
             switch self {
@@ -558,14 +593,14 @@ public class Settings {
             }
         }
     }
-    
+
     public enum FilesSortOrder: Int {
         public static let allValues = [
             noSorting,
             nameAsc, nameDesc,
             creationTimeDesc, creationTimeAsc,
             modificationTimeDesc, modificationTimeAsc]
-        
+
         case noSorting
         case nameAsc
         case nameDesc
@@ -573,7 +608,7 @@ public class Settings {
         case creationTimeDesc
         case modificationTimeAsc
         case modificationTimeDesc
-        
+
         public var isAscending: Bool? {
             switch self {
             case .noSorting:
@@ -584,8 +619,9 @@ public class Settings {
                 return false
             }
         }
-                
+
         public var longTitle: String {
+            // swiftlint:disable line_length
             switch self {
             case .noSorting:
                 return NSLocalizedString(
@@ -630,6 +666,7 @@ public class Settings {
                     value: "Modification Date (Recent First)",
                     comment: "A sorting option for a list of files, by file's last modification date. Example: 'Sort Order: Modification Date (Recent First)'")
             }
+            // swiftlint:enable line_length
         }
 
         public func compare(_ lhs: URLReference, _ rhs: URLReference) -> Bool {
@@ -650,7 +687,7 @@ public class Settings {
                 return compareModificationTimes(lhs, rhs, criteria: .orderedDescending)
             }
         }
-        
+
         private func compareFileNames(_ lhs: URLReference, _ rhs: URLReference, criteria: ComparisonResult) -> Bool {
             let lhsInfo = lhs.getCachedInfoSync(canFetch: false)
             guard let lhsName = lhsInfo?.fileName ?? lhs.url?.lastPathComponent else {
@@ -662,16 +699,24 @@ public class Settings {
             }
             return lhsName.localizedCaseInsensitiveCompare(rhsName) == criteria
         }
-        
-        private func compareCreationTimes(_ lhs: URLReference, _ rhs: URLReference, criteria: ComparisonResult) -> Bool {
+
+        private func compareCreationTimes(
+            _ lhs: URLReference,
+            _ rhs: URLReference,
+            criteria: ComparisonResult
+        ) -> Bool {
             guard let lhsInfo = lhs.getCachedInfoSync(canFetch: false) else { return false }
             guard let rhsInfo = rhs.getCachedInfoSync(canFetch: false) else { return true }
             guard let lhsDate = lhsInfo.creationDate else { return true }
             guard let rhsDate = rhsInfo.creationDate else { return false }
             return lhsDate.compare(rhsDate) == criteria
         }
-        
-        private func compareModificationTimes(_ lhs: URLReference, _ rhs: URLReference, criteria: ComparisonResult) -> Bool {
+
+        private func compareModificationTimes(
+            _ lhs: URLReference,
+            _ rhs: URLReference,
+            criteria: ComparisonResult
+        ) -> Bool {
             guard let lhsInfo = lhs.getCachedInfoSync(canFetch: false) else { return false }
             guard let rhsInfo = rhs.getCachedInfoSync(canFetch: false) else { return true }
             guard let lhsDate = lhsInfo.modificationDate else { return true }
@@ -679,7 +724,7 @@ public class Settings {
             return lhsDate.compare(rhsDate) == criteria
         }
     }
-    
+
     public enum PasscodeKeyboardType: Int {
         public static let allValues = [numeric, alphanumeric]
         case numeric
@@ -701,12 +746,12 @@ public class Settings {
             }
         }
     }
-    
-    
+
+
     public private(set) var isTestEnvironment: Bool
-    
+
     public private(set) var isFirstLaunch: Bool
-    
+
     public var settingsVersion: Int {
         get {
             let storedVersion = UserDefaults.appGroupShared
@@ -722,24 +767,21 @@ public class Settings {
             }
         }
     }
-    
+
     public var firstLaunchTimestamp: Date {
-        get {
-            if let storedTimestamp = UserDefaults.appGroupShared
-                .object(forKey: Keys.firstLaunchTimestamp.rawValue)
-                as? Date
-            {
-                return storedTimestamp
-            } else {
-                let firstLaunchTimestamp = Date.now
-                UserDefaults.appGroupShared.set(
-                    firstLaunchTimestamp,
-                    forKey: Keys.firstLaunchTimestamp.rawValue)
-                return firstLaunchTimestamp
-            }
+        if let storedTimestamp = UserDefaults.appGroupShared
+                .object(forKey: Keys.firstLaunchTimestamp.rawValue) as? Date
+        {
+            return storedTimestamp
+        } else {
+            let firstLaunchTimestamp = Date.now
+            UserDefaults.appGroupShared.set(
+                firstLaunchTimestamp,
+                forKey: Keys.firstLaunchTimestamp.rawValue)
+            return firstLaunchTimestamp
         }
     }
-    
+
 #if DEBUG
     public func resetFirstLaunchTimestampToNow() {
         UserDefaults.appGroupShared.set(
@@ -748,12 +790,12 @@ public class Settings {
     }
 #endif
 
-    
+
     public var filesSortOrder: FilesSortOrder {
         get {
             if let rawValue = UserDefaults.appGroupShared
-                .object(forKey: Keys.filesSortOrder.rawValue) as? Int,
-                let sortOrder = FilesSortOrder(rawValue: rawValue)
+                    .object(forKey: Keys.filesSortOrder.rawValue) as? Int,
+               let sortOrder = FilesSortOrder(rawValue: rawValue)
             {
                 return sortOrder
             }
@@ -767,9 +809,12 @@ public class Settings {
             }
         }
     }
-    
+
     public var isBackupFilesVisible: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.showBackupFiles) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.backupFilesVisible.rawValue)
                 as? Bool
@@ -782,8 +827,8 @@ public class Settings {
                 key: .backupFilesVisible)
         }
     }
-    
-    
+
+
     public var startupDatabase: URLReference? {
         get {
             if let data = UserDefaults.appGroupShared.data(forKey: Keys.startupDatabase.rawValue) {
@@ -802,9 +847,12 @@ public class Settings {
             }
         }
     }
-    
+
     public var isAutoUnlockStartupDatabase: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.autoUnlockLastDatabase) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.autoUnlockStartupDatabase.rawValue)
                 as? Bool
@@ -817,9 +865,12 @@ public class Settings {
                 key: .autoUnlockStartupDatabase)
         }
     }
-    
+
     public var isRememberDatabaseKey: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.rememberDatabaseKey) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.rememberDatabaseKey.rawValue)
                 as? Bool
@@ -835,6 +886,9 @@ public class Settings {
 
     public var isRememberDatabaseFinalKey: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.rememberDatabaseFinalKey) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.rememberDatabaseFinalKey.rawValue)
                 as? Bool
@@ -848,9 +902,11 @@ public class Settings {
         }
     }
 
-    
     public var isKeepKeyFileAssociations: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.keepKeyFileAssociations) {
+                return managedValue
+            }
             if contains(key: Keys.keepKeyFileAssociations) {
                 return UserDefaults.appGroupShared.bool(forKey: Keys.keepKeyFileAssociations.rawValue)
             } else {
@@ -868,9 +924,12 @@ public class Settings {
             }
         }
     }
-    
+
     public var isKeepHardwareKeyAssociations: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.keepHardwareKeyAssociations) {
+                return managedValue
+            }
             if contains(key: Keys.keepHardwareKeyAssociations) {
                 return UserDefaults.appGroupShared.bool(forKey: Keys.keepHardwareKeyAssociations.rawValue)
             } else {
@@ -888,19 +947,17 @@ public class Settings {
             }
         }
     }
-    
-    
+
+
     public var isAppLockEnabled: Bool {
-        get {
-            let hasPasscode = try? Keychain.shared.isAppPasscodeSet() 
-            return hasPasscode ?? false
-        }
+      let hasPasscode = try? Keychain.shared.isAppPasscodeSet() 
+      return hasPasscode ?? false
     }
-    
+
     internal func notifyAppLockEnabledChanged() {
         postChangeNotification(changedKey: .appLockEnabled)
     }
-    
+
     public var isBiometricAppLockEnabled: Bool {
         get {
             let stored = UserDefaults.appGroupShared
@@ -915,9 +972,15 @@ public class Settings {
                 key: .biometricAppLockEnabled)
         }
     }
-    
+
     public var isLockAllDatabasesOnFailedPasscode: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.lockAllDatabasesOnFailedPasscode) {
+                return managedValue
+            }
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.lockAllDatabasesOnFailedPasscode) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.lockAllDatabasesOnFailedPasscode.rawValue)
                 as? Bool
@@ -930,12 +993,11 @@ public class Settings {
                 key: .lockAllDatabasesOnFailedPasscode)
         }
     }
-    
+
     public var recentUserActivityTimestamp: Date {
         get {
             if let storedTimestamp = UserDefaults.appGroupShared
-                .object(forKey: Keys.recentUserActivityTimestamp.rawValue)
-                as? Date
+                    .object(forKey: Keys.recentUserActivityTimestamp.rawValue) as? Date
             {
                 return storedTimestamp
             }
@@ -955,7 +1017,7 @@ public class Settings {
             postChangeNotification(changedKey: Keys.recentUserActivityTimestamp)
         }
     }
-    
+
     private func maybeFixAutoFillBiometricIDLoop(_ timeout: AppLockTimeout) -> AppLockTimeout {
         if timeout == .immediately && AppGroup.isAppExtension {
             return .almostImmediately
@@ -963,12 +1025,17 @@ public class Settings {
             return timeout
         }
     }
-    
+
     public var appLockTimeout: AppLockTimeout {
         get {
+            if let managedValue = ManagedAppConfig.shared.getIntIfLicensed(.appLockTimeout) {
+                let nearestTimeout = AppLockTimeout.nearest(forSeconds: managedValue)
+                return maybeFixAutoFillBiometricIDLoop(nearestTimeout)
+            }
+
             if let rawValue = UserDefaults.appGroupShared
-                .object(forKey: Keys.appLockTimeout.rawValue) as? Int,
-                let timeout = AppLockTimeout(rawValue: rawValue)
+                    .object(forKey: Keys.appLockTimeout.rawValue) as? Int,
+               let timeout = AppLockTimeout(rawValue: rawValue)
             {
                 return maybeFixAutoFillBiometricIDLoop(timeout)
             }
@@ -982,9 +1049,12 @@ public class Settings {
             }
         }
     }
-    
+
     public var isLockAppOnLaunch: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.lockAppOnLaunch) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.lockAppOnLaunch.rawValue)
                 as? Bool
@@ -997,12 +1067,17 @@ public class Settings {
                 key: .lockAppOnLaunch)
         }
     }
-    
+
     public var databaseLockTimeout: DatabaseLockTimeout {
         get {
+            if let managedValue = ManagedAppConfig.shared.getIntIfLicensed(.databaseLockTimeout) {
+                let nearestTimeout = DatabaseLockTimeout.nearest(forSeconds: managedValue)
+                return nearestTimeout
+            }
+
             if let rawValue = UserDefaults.appGroupShared
                     .object(forKey: Keys.databaseLockTimeout.rawValue) as? Int,
-                let timeout = DatabaseLockTimeout(rawValue: rawValue)
+               let timeout = DatabaseLockTimeout(rawValue: rawValue)
             {
                 return timeout
             }
@@ -1018,9 +1093,12 @@ public class Settings {
             }
         }
     }
-    
+
     public var isLockDatabasesOnTimeout: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.lockDatabasesOnTimeout) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.lockDatabasesOnTimeout.rawValue)
                 as? Bool
@@ -1033,13 +1111,18 @@ public class Settings {
                 key: .lockDatabasesOnTimeout)
         }
     }
-    
-    
+
+
     public var clipboardTimeout: ClipboardTimeout {
         get {
+            if let managedValue = ManagedAppConfig.shared.getIntIfLicensed(.clipboardTimeout) {
+                let nearestTimeout = ClipboardTimeout.nearest(forSeconds: managedValue)
+                return nearestTimeout
+            }
+
             if let rawValue = UserDefaults.appGroupShared
                     .object(forKey: Keys.clipboardTimeout.rawValue) as? Int,
-                let timeout = ClipboardTimeout(rawValue: rawValue)
+               let timeout = ClipboardTimeout(rawValue: rawValue)
             {
                 return timeout
             }
@@ -1053,9 +1136,12 @@ public class Settings {
             }
         }
     }
-    
+
     public var isUniversalClipboardEnabled: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.useUniversalClipboard) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.universalClipboardEnabled.rawValue)
                 as? Bool
@@ -1068,12 +1154,12 @@ public class Settings {
                 key: .universalClipboardEnabled)
         }
     }
-    
-    
+
+
     public var databaseIconSet: DatabaseIconSet {
         get {
             if let rawValue = UserDefaults.appGroupShared
-                .object(forKey: Keys.databaseIconSet.rawValue) as? Int,
+                    .object(forKey: Keys.databaseIconSet.rawValue) as? Int,
                let iconSet = DatabaseIconSet(rawValue: rawValue)
             {
                 return iconSet
@@ -1084,12 +1170,12 @@ public class Settings {
             updateAndNotify(oldValue: databaseIconSet.rawValue, newValue: newValue.rawValue, key: .databaseIconSet)
         }
     }
-    
+
     public var groupSortOrder: GroupSortOrder {
         get {
             if let rawValue = UserDefaults.appGroupShared
                     .object(forKey: Keys.groupSortOrder.rawValue) as? Int,
-                let sortOrder = GroupSortOrder(rawValue: rawValue)
+               let sortOrder = GroupSortOrder(rawValue: rawValue)
             {
                 return sortOrder
             }
@@ -1107,8 +1193,8 @@ public class Settings {
     public var entryListDetail: EntryListDetail {
         get {
             if let rawValue = UserDefaults.appGroupShared
-                .object(forKey: Keys.entryListDetail.rawValue) as? Int,
-                let detail = EntryListDetail(rawValue: rawValue)
+                    .object(forKey: Keys.entryListDetail.rawValue) as? Int,
+               let detail = EntryListDetail(rawValue: rawValue)
             {
                 return detail
             }
@@ -1122,7 +1208,7 @@ public class Settings {
             }
         }
     }
-    
+
     public var entryViewerPage: Int {
         get {
             let storedPage = UserDefaults.appGroupShared
@@ -1136,9 +1222,12 @@ public class Settings {
                 key: Keys.entryViewerPage)
         }
     }
-    
+
     public var isHideProtectedFields: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.hideProtectedFields) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.hideProtectedFields.rawValue) as? Bool
             return stored ?? true
@@ -1150,7 +1239,7 @@ public class Settings {
                 key: Keys.hideProtectedFields)
         }
     }
-    
+
     public var isCollapseNotesField: Bool {
         get {
             let stored = UserDefaults.appGroupShared
@@ -1164,8 +1253,8 @@ public class Settings {
                 key: Keys.collapseNotesField)
         }
     }
-    
-    
+
+
     public var isStartWithSearch: Bool {
         get {
             let stored = UserDefaults.appGroupShared
@@ -1195,7 +1284,7 @@ public class Settings {
                 key: .searchFieldNames)
         }
     }
-    
+
     public var isSearchProtectedValues: Bool {
         get {
             let stored = UserDefaults.appGroupShared
@@ -1210,7 +1299,7 @@ public class Settings {
                 key: .searchProtectedValues)
         }
     }
-    
+
     public var isSearchPasswords: Bool {
         get {
             guard isSearchProtectedValues else {
@@ -1228,16 +1317,17 @@ public class Settings {
                 key: .searchPasswords)
         }
     }
-    
+
 
     public var isBackupDatabaseOnLoad: Bool {
-        get {
-            return isBackupDatabaseOnSave
-        }
+      return isBackupDatabaseOnSave
     }
 
     public var isBackupDatabaseOnSave: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.backupDatabaseOnSave) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.backupDatabaseOnSave.rawValue)
                 as? Bool
@@ -1250,12 +1340,17 @@ public class Settings {
                 key: .backupDatabaseOnSave)
         }
     }
-    
+
     public var backupKeepingDuration: BackupKeepingDuration {
         get {
+            if let managedValue = ManagedAppConfig.shared.getIntIfLicensed(.backupKeepingDuration) {
+                let nearestDuration = BackupKeepingDuration.nearest(forSeconds: managedValue)
+                return nearestDuration
+            }
+
             if let stored = UserDefaults.appGroupShared
-                .object(forKey: Keys.backupKeepingDuration.rawValue) as? Int,
-                let timeout = BackupKeepingDuration(rawValue: stored)
+                    .object(forKey: Keys.backupKeepingDuration.rawValue) as? Int,
+               let timeout = BackupKeepingDuration(rawValue: stored)
             {
                 return timeout
             }
@@ -1271,9 +1366,12 @@ public class Settings {
             }
         }
     }
-    
+
     public var isExcludeBackupFilesFromSystemBackup: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.excludeBackupFilesFromSystemBackup) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.excludeBackupFilesFromSystemBackup.rawValue)
                 as? Bool
@@ -1286,8 +1384,8 @@ public class Settings {
                 key: .excludeBackupFilesFromSystemBackup)
         }
     }
-    
-    
+
+
     public var isAutoFillFinishedOK: Bool {
         get {
             let stored = UserDefaults.appGroupShared
@@ -1300,11 +1398,11 @@ public class Settings {
                 oldValue: isAutoFillFinishedOK,
                 newValue: newValue,
                 key: Keys.autoFillFinishedOK)
-            
+
             UserDefaults.appGroupShared.synchronize()
         }
     }
-    
+
     public var isCopyTOTPOnAutoFill: Bool {
         get {
             let stored = UserDefaults.appGroupShared
@@ -1334,7 +1432,7 @@ public class Settings {
                 key: .autoFillPerfectMatch)
         }
     }
-    
+
     public var acceptAutoFillInput: Bool {
         get {
             let stored = UserDefaults.appGroupShared
@@ -1349,9 +1447,12 @@ public class Settings {
                 key: .acceptAutoFillInput)
         }
     }
-    
+
     public var isQuickTypeEnabled: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.enableQuickTypeAutoFill) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.quickTypeEnabled.rawValue)
                 as? Bool
@@ -1364,8 +1465,8 @@ public class Settings {
                 key: .quickTypeEnabled)
         }
     }
-    
-    
+
+
     public var isHapticFeedbackEnabled: Bool {
         get {
             let stored = UserDefaults.appGroupShared
@@ -1383,6 +1484,9 @@ public class Settings {
 
     public var isHideAppLockSetupReminder: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.hideAppLockSetupReminder) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.hideAppLockSetupReminder.rawValue)
                 as? Bool
@@ -1397,7 +1501,7 @@ public class Settings {
     }
 
     public let textScaleAllowedRange: ClosedRange<CGFloat> = 0.5...2.0
-    
+
     public var textScale: CGFloat {
         get {
             let storedValueOrNil = UserDefaults.appGroupShared
@@ -1416,8 +1520,25 @@ public class Settings {
                 key: .textScale)
         }
     }
-    
-    
+
+    public var entryTextFontDescriptor: UIFontDescriptor? {
+        get {
+            guard let data = UserDefaults.appGroupShared.data(forKey: .entryTextFontDescriptor) else {
+                return nil
+            }
+            return UIFontDescriptor.deserialize(data)
+        }
+        set {
+            let newData = newValue?.serialize()
+            let oldData = UserDefaults.appGroupShared.data(forKey: .entryTextFontDescriptor)
+            if newData != oldData {
+                UserDefaults.appGroupShared.set(newData, forKey: .entryTextFontDescriptor)
+                postChangeNotification(changedKey: .entryTextFontDescriptor)
+            }
+        }
+    }
+
+
     public var passwordGeneratorConfig: PasswordGeneratorParams {
         get {
             let storedData = UserDefaults.appGroupShared
@@ -1438,12 +1559,12 @@ public class Settings {
         }
 
     }
-    
+
     public var passcodeKeyboardType: PasscodeKeyboardType {
         get {
             if let rawValue = UserDefaults.appGroupShared
-                .object(forKey: Keys.passcodeKeyboardType.rawValue) as? Int,
-                let keyboardType = PasscodeKeyboardType(rawValue: rawValue)
+                    .object(forKey: Keys.passcodeKeyboardType.rawValue) as? Int,
+               let keyboardType = PasscodeKeyboardType(rawValue: rawValue)
             {
                 return keyboardType
             }
@@ -1457,10 +1578,13 @@ public class Settings {
             }
         }
     }
-    
-    
+
+
     public var isNetworkAccessAllowed: Bool {
         get {
+            if let managedValue = ManagedAppConfig.shared.getBoolIfLicensed(.allowNetworkAccess) {
+                return managedValue
+            }
             let stored = UserDefaults.appGroupShared
                 .object(forKey: Keys.networkAccessAllowed.rawValue) as? Bool
             return stored ?? false
@@ -1473,8 +1597,8 @@ public class Settings {
             )
         }
     }
-        
-    
+
+
     private init() {
         #if DEBUG
         isTestEnvironment = true
@@ -1488,22 +1612,22 @@ public class Settings {
                 ?? false
         }
         #endif
-        
+
         isFirstLaunch = Settings.maybeHandleFirstLaunch()
     }
-    
+
     private static func maybeHandleFirstLaunch() -> Bool {
         guard ProcessInfo.isRunningOnMac else {
             let versionInfo = UserDefaults.appGroupShared
                 .object(forKey: Keys.settingsVersion.rawValue) as? Int
             return (versionInfo == nil)
         }
-        
+
         #if DEBUG
         return false
         #endif
-        
-        
+
+
         guard let bundleAttributes = try? FileManager.default
                 .attributesOfItem(atPath: Bundle.mainAppURL.path),
               let bundleCreationDate = bundleAttributes[.creationDate] as? Date,
@@ -1513,7 +1637,7 @@ public class Settings {
             UserDefaults.eraseAppGroupShared()
             return true
         }
-        
+
         let storedCreationDate: Date? = UserDefaults.appGroupShared
             .object(forKey: Keys.bundleCreationTimestamp.rawValue)
             as? Date
@@ -1527,7 +1651,7 @@ public class Settings {
         let isModificationDateChanged =
             (storedModificationDate != nil) &&
             abs(bundleModificationDate.timeIntervalSince(storedModificationDate!)) > 1.0
-        
+
         defer {
             UserDefaults.appGroupShared.set(
                 bundleCreationDate,
@@ -1536,26 +1660,24 @@ public class Settings {
                 bundleModificationDate,
                 forKey: Keys.bundleModificationTimestamp.rawValue)
         }
-        
+
         switch (hasStoredDate, isCreationDateChanged, isModificationDateChanged) {
         case (false, _, _):
             Diag.debug("First launch ever")
-            break
         case (true, true, _): 
             Diag.debug("App version updated")
             return false
         case (true, false, true): 
             Diag.debug("App reinstall detected, handling as first launch")
-            break
         case (true, false, false): 
             return false
         }
-        
+
         UserDefaults.eraseAppGroupShared()
         return true
     }
 
-    
+
     private func updateAndNotify(oldValue: Bool, newValue: Bool, key: Keys) {
         UserDefaults.appGroupShared.set(newValue, forKey: key.rawValue)
         if newValue != oldValue {
@@ -1571,7 +1693,7 @@ public class Settings {
     }
 
     private func contains(key: Keys) -> Bool {
-        return UserDefaults.appGroupShared.object(forKey: key.rawValue) != nil
+        return UserDefaults.appGroupShared.object(forKey: key) != nil
     }
 
     fileprivate func postChangeNotification(changedKey: Settings.Keys) {
@@ -1582,6 +1704,76 @@ public class Settings {
                 Notifications.userInfoKey: changedKey.rawValue
             ]
         )
+    }
+}
+
+extension Settings.Keys {
+    internal var managedKeyMapping: ManagedAppConfig.Key? {
+        switch self {
+        case .backupFilesVisible:
+            return .showBackupFiles
+        case .autoUnlockStartupDatabase:
+            return .autoUnlockLastDatabase
+        case .rememberDatabaseKey:
+            return .rememberDatabaseKey
+        case .rememberDatabaseFinalKey:
+            return .rememberDatabaseFinalKey
+        case .keepKeyFileAssociations:
+            return .keepKeyFileAssociations
+        case .keepHardwareKeyAssociations:
+            return .keepHardwareKeyAssociations
+        case .lockAllDatabasesOnFailedPasscode:
+            return .lockAllDatabasesOnFailedPasscode
+        case .appLockTimeout:
+            return .appLockTimeout
+        case .lockAppOnLaunch:
+            return .lockAppOnLaunch
+        case .databaseLockTimeout:
+            return .databaseLockTimeout
+        case .lockDatabasesOnTimeout:
+            return .lockDatabasesOnTimeout
+        case .clipboardTimeout:
+            return .clipboardTimeout
+        case .universalClipboardEnabled:
+            return .useUniversalClipboard
+        case .hideProtectedFields:
+            return .hideProtectedFields
+        case .backupDatabaseOnSave:
+            return .backupDatabaseOnSave
+        case .backupKeepingDuration:
+            return .backupKeepingDuration
+        case .excludeBackupFilesFromSystemBackup:
+            return .excludeBackupFilesFromSystemBackup
+        case .quickTypeEnabled:
+            return .enableQuickTypeAutoFill
+        case .networkAccessAllowed:
+            return .allowNetworkAccess
+        case .hideAppLockSetupReminder:
+            return .hideAppLockSetupReminder
+        default:
+            return nil
+        }
+    }
+}
+
+extension Settings {
+    public func isManaged(key: Keys) -> Bool {
+        guard let managedKey = key.managedKeyMapping else {
+            return false
+        }
+        return ManagedAppConfig.shared.isManaged(key: managedKey)
+    }
+}
+
+fileprivate extension UserDefaults {
+    func set(_ value: Any?, forKey key: Settings.Keys) {
+        set(value, forKey: key.rawValue)
+    }
+    func object(forKey key: Settings.Keys) -> Any? {
+        return object(forKey: key.rawValue)
+    }
+    func data(forKey key: Settings.Keys) -> Data? {
+        return data(forKey: key.rawValue)
     }
 }
 

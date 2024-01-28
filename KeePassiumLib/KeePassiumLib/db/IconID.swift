@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -19,19 +19,19 @@ public enum IconID: UInt32 {
         .question, .box, .folder, .folderOpen, .folderBox, .lockOpen, .sheetLock, .checkmark,
         .pen, .photo, .book, .list, .userKey, .hammer, .home, .star, .tux, .feather, .apple,
         .wiki, .currency, .certificate, .phone]
-    
+
     public static let withZeroID: IconID = .key
-    
-    case key              =  0
-    case globe            =  1
-    case warning          =  2
-    case server           =  3
-    case folderMark       =  4
-    case user             =  5
-    case pie_chart        =  6
-    case notepad          =  7
-    case globeSocket      =  8
-    case businessCard     =  9
+
+    case key              = 0
+    case globe            = 1
+    case warning          = 2
+    case server           = 3
+    case folderMark       = 4
+    case user             = 5
+    case pie_chart        = 6
+    case notepad          = 7
+    case globeSocket      = 8
+    case businessCard     = 9
     case sheetStar        = 10
     case camera           = 11
     case wifi             = 12

@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -13,11 +13,11 @@ public class Weak<T: AnyObject> {
     public init(_ value: T) {
         self.value = value
     }
-    
+
     public static func wrapped(_ array: [T]) -> [Weak<T>] {
         return array.map { Weak($0) }
     }
-    
+
     public static func unwrapped(_ array: [Weak<T>]) -> [T] {
         var result = [T]()
         array.forEach {

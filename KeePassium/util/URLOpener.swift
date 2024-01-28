@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -9,12 +9,12 @@
 import KeePassiumLib
 
 class URLOpener: NSObject {
-    
+
     private weak var application: UIApplication?
-    
+
     internal init(_ responder: UIResponder?) {
         super.init()
-        
+
         var responder = responder
         while responder != nil {
             if let application = responder as? UIApplication {
@@ -24,7 +24,7 @@ class URLOpener: NSObject {
             responder = responder?.next
         }
     }
-    
+
     internal init(_ application: UIApplication) {
         super.init()
         self.application = application
@@ -32,7 +32,7 @@ class URLOpener: NSObject {
 
     public func open(
         url: URL,
-        completionHandler: ((Bool)->Void)?=nil
+        completionHandler: ((Bool) -> Void)? = nil
     ) {
         #if MAIN_APP
         application?.open(url, options: [:], completionHandler: completionHandler)
@@ -42,12 +42,11 @@ class URLOpener: NSObject {
         #endif
     }
 
-        
     func canOpenURL(_ url: URL) -> Bool {
         let result = application?.canOpenURL(url)
         return result ?? false
     }
-    
+
     @objc private func openURL(_ url: URL) -> Bool {
         let result = application?.perform(#selector(openURL(_:)), with: url)
         return result != nil

@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -8,19 +8,19 @@
 
 import Foundation
 
-public extension Date {   
+public extension Date {
     private static let iso8601DateFormatter = { () -> ISO8601DateFormatter in
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime]
         return formatter
     }()
-    
+
     private static let iso8601DateFormatterWithFractionalSeconds = { () -> ISO8601DateFormatter in
         let formatter = ISO8601DateFormatter()
-        formatter.formatOptions =  [.withInternetDateTime, .withFractionalSeconds]
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter
     }()
-    
+
     private static let miniKeePassDateFormatter = { () -> DateFormatter in
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
@@ -43,7 +43,7 @@ public extension Date {
             return nil
         }
     }
-    
+
     init?(base64Encoded string: String?) {
         guard let data = ByteArray(base64Encoded: string) else { return nil }
         guard let secondsSinceDotNetReferenceDate = Int64(data: data) else { return nil }
@@ -51,18 +51,18 @@ public extension Date {
             secondsSinceDotNetReferenceDate - Date.secondsBetweenSwiftAndDotNetReferenceDates
         self = Date(timeIntervalSinceReferenceDate: Double(secondsSinceSwiftReferenceDate))
     }
-    
+
     func iso8601String() -> String {
         return Date.iso8601DateFormatter.string(from: self)
     }
-    
+
     func base64EncodedString() -> String {
         let secondsSinceSwiftReferenceDate = Int64(self.timeIntervalSinceReferenceDate)
         let secondsSinceDotNetReferenceDate =
             secondsSinceSwiftReferenceDate + Date.secondsBetweenSwiftAndDotNetReferenceDates
         return secondsSinceDotNetReferenceDate.data.base64EncodedString()
     }
-    
+
     var iso8601WeekOfYear: Int {
         let isoCalendar = Calendar(identifier: .iso8601)
         let dateComponents = isoCalendar.dateComponents([.weekOfYear], from: self)

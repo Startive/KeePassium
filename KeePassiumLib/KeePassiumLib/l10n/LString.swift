@@ -1,15 +1,15 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
 //  by the Free Software Foundation: https://www.gnu.org/licenses/).
 //  For commercial licensing, please contact the author.
 
-import Foundation
+// swiftlint:disable line_length
 
 public enum LString {
-        
+
     public enum Error {
         public static let passwordAndKeyFileAreBothEmpty = NSLocalizedString(
             "[Database/Unlock/Error] Password and key file are both empty.",
@@ -82,9 +82,15 @@ public enum LString {
             value: "Not a file URL",
             comment: "Error message: tried to import URL which does not point to a file")
     }
-    
-    
-    enum Warning {
+
+
+    public enum Warning {
+        public static let iconWithMessageTemplate = NSLocalizedString(
+            "[Generic/WarningWithIcon/template]",
+            bundle: Bundle.framework,
+            value: "⚠️ %@",
+            comment: "Warning message template. Swap the icon and message for right-to-left languages."
+        )
         public static let fileIsInTrashTemplate = NSLocalizedString(
             "[File/In Trash/warning]",
             bundle: Bundle.framework,
@@ -96,17 +102,17 @@ public enum LString {
             bundle: Bundle.framework,
             value: "This is a temporary backup database. It can be automatically deleted without a warning. Don't use it as your main database.",
             comment: "Notification when user opens an in-app backup database.")
-        
+
         public static let lesserTargetDatabaseFormat = NSLocalizedString(
             "[Database/LesserTargetFormat/warning]",
             bundle: Bundle.framework,
             value: "This is an older database format, some data might be lost.",
             comment: "Notification when user tries to copy data from KDBX to older KDB database."
         )
-        
+
     }
-    
-    
+
+
     enum Progress {
         static let contactingStorageProvider = NSLocalizedString(
             "[Database/Progress/resolving]",
@@ -138,7 +144,7 @@ public enum LString {
             bundle: Bundle.framework,
             value: "Done",
             comment: "Progress status: finished loading database")
-        
+
         static let database1ParsingContent = NSLocalizedString(
             "[Database1/Progress] Parsing content",
             bundle: Bundle.framework,
@@ -149,7 +155,7 @@ public enum LString {
             bundle: Bundle.framework,
             value: "Packing the content",
             comment: "Status message: collecting database items into a single package")
-        
+
         static let database2LoadingDatabase = NSLocalizedString(
             "[Database2/Progress] Loading database",
             bundle: Bundle.framework,
@@ -182,3 +188,4 @@ public enum LString {
             comment: "Progress bar status")
     }
 }
+// swiftlint:enable line_length

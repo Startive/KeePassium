@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -22,7 +22,7 @@ struct PricingPlanCondition {
         case perpetualFallback
         case familySharing
     }
-    
+
     enum HelpReference {
         case none
         case perpetualFallback
@@ -38,11 +38,11 @@ struct PricingPlanCondition {
             }
         }
     }
-    
+
     var kind: Kind
     var isIncluded: Bool
     var moreInfo: HelpReference
-    
+
     var localizedTitle: String {
         switch kind {
         case .updatesAndFixes:
@@ -73,7 +73,7 @@ struct PricingPlanBenefit {
     var symbolName: SymbolName
     var title: String
     var description: String?
-        
+
     static let multipleDatabases = PricingPlanBenefit(
         symbolName: .premiumBenefitMultiDB,
         title: LString.premiumBenefitMultipleDatabasesTitle,
@@ -81,7 +81,7 @@ struct PricingPlanBenefit {
     )
     static let longDatabaseTimeout = PricingPlanBenefit(
         symbolName: .premiumBenefitDBTimeout,
-        title:  LString.premiumBenefitLongDatabaseTimeoutsTitle,
+        title: LString.premiumBenefitLongDatabaseTimeoutsTitle,
         description: LString.premiumBenefitLongDatabaseTimeoutsDescription
     )
     static let yubikeyChallengeResponse = PricingPlanBenefit(
@@ -93,6 +93,11 @@ struct PricingPlanBenefit {
         symbolName: .premiumBenefitBusinessClouds,
         title: LString.premiumBenefitBusinessCloudsTitle,
         description: LString.premiumBenefitBusinessCloudsDescription
+    )
+    static let passwordAudit = PricingPlanBenefit(
+        symbolName: .premiumBenefitPasswordAudit,
+        title: LString.premiumBenefitPasswordAuditTitle,
+        description: LString.premiumBenefitPasswordAuditDescription
     )
     static let viewFieldReferences = PricingPlanBenefit(
         symbolName: .premiumBenefitFieldReferences,
@@ -114,7 +119,7 @@ class PricingPlanFactory {
             return nil
         }
         assert(iapProduct.kind == .premium, "Wrong IAP product kind encountered")
-        
+
         switch iapProduct {
         case .betaForever:
             return nil
@@ -128,7 +133,8 @@ class PricingPlanFactory {
         case .version88,
              .version96,
              .version99,
-             .version120:
+             .version120,
+             .version139:
             return PricingPlanVersionPurchase(product)
         case .donationSmall,
              .donationMedium,
@@ -142,19 +148,19 @@ class PricingPlanFactory {
 class PricingPlan {
     fileprivate(set) var title: String
     fileprivate(set) var isFree: Bool
-    
+
     fileprivate(set) var isDefault: Bool
     fileprivate(set) var price: NSDecimalNumber
     fileprivate(set) var localizedPrice: String
     fileprivate(set) var localizedPriceWithPeriod: String?
-    
+
     fileprivate(set) var callToAction: String
     fileprivate(set) var ctaSubtitle: String?
-    
+
     fileprivate(set) var conditions: [PricingPlanCondition]
     fileprivate(set) var benefits: [PricingPlanBenefit]
     fileprivate(set) var smallPrint: String?
-    
+
     init() {
         self.title = ""
         self.isFree = true
@@ -189,6 +195,7 @@ class FreePricingPlan: PricingPlan {
             PricingPlanBenefit.quickAutoFill,
             PricingPlanBenefit.multipleDatabases,
             PricingPlanBenefit.yubikeyChallengeResponse,
+            PricingPlanBenefit.passwordAudit,
             PricingPlanBenefit.businessClouds,
             PricingPlanBenefit.viewFieldReferences,
             PricingPlanBenefit.longDatabaseTimeout,
@@ -199,7 +206,7 @@ class FreePricingPlan: PricingPlan {
 
 class RealPricingPlan: PricingPlan {
     fileprivate(set) var product: SKProduct
-    
+
     init(_ product: SKProduct) {
         self.product = product
         super.init()
@@ -209,7 +216,7 @@ class RealPricingPlan: PricingPlan {
         self.localizedPrice = product.localizedPrice
         self.localizedPriceWithPeriod = nil
     }
-    
+
     fileprivate func maybeOfferTrial() {
         guard #available(iOS 11.2, *) else {
             return
@@ -235,7 +242,7 @@ class RealPricingPlan: PricingPlan {
 class PricingPlanPremiumMonthly: RealPricingPlan {
     override init(_ product: SKProduct) {
         super.init(product)
-        
+
         self.localizedPriceWithPeriod =
             String.localizedStringWithFormat(LString.priceTemplateMonthly, localizedPrice)
         self.callToAction = LString.premiumCallToActionUpgradeNow
@@ -251,6 +258,7 @@ class PricingPlanPremiumMonthly: RealPricingPlan {
             PricingPlanBenefit.quickAutoFill,
             PricingPlanBenefit.multipleDatabases,
             PricingPlanBenefit.yubikeyChallengeResponse,
+            PricingPlanBenefit.passwordAudit,
             PricingPlanBenefit.businessClouds,
             PricingPlanBenefit.viewFieldReferences,
             PricingPlanBenefit.longDatabaseTimeout,
@@ -263,7 +271,7 @@ class PricingPlanPremiumMonthly: RealPricingPlan {
 class PricingPlanPremiumYearly: RealPricingPlan {
     override init(_ product: SKProduct) {
         super.init(product)
-        
+
         isDefault = true
         self.localizedPriceWithPeriod =
             String.localizedStringWithFormat(LString.priceTemplateYearly, localizedPrice)
@@ -280,6 +288,7 @@ class PricingPlanPremiumYearly: RealPricingPlan {
             PricingPlanBenefit.quickAutoFill,
             PricingPlanBenefit.multipleDatabases,
             PricingPlanBenefit.yubikeyChallengeResponse,
+            PricingPlanBenefit.passwordAudit,
             PricingPlanBenefit.businessClouds,
             PricingPlanBenefit.viewFieldReferences,
             PricingPlanBenefit.longDatabaseTimeout,
@@ -307,6 +316,7 @@ class PricingPlanVersionPurchase: RealPricingPlan {
             PricingPlanBenefit.quickAutoFill,
             PricingPlanBenefit.multipleDatabases,
             PricingPlanBenefit.yubikeyChallengeResponse,
+            PricingPlanBenefit.passwordAudit,
             PricingPlanBenefit.businessClouds,
             PricingPlanBenefit.viewFieldReferences,
             PricingPlanBenefit.longDatabaseTimeout,
@@ -318,7 +328,7 @@ class PricingPlanVersionPurchase: RealPricingPlan {
 class PricingPlanPremiumForever: RealPricingPlan {
     override init(_ product: SKProduct) {
         super.init(product)
-        
+
         self.localizedPriceWithPeriod = localizedPrice
         self.callToAction = LString.premiumCallToActionBuyNow
         self.ctaSubtitle = nil
@@ -333,6 +343,7 @@ class PricingPlanPremiumForever: RealPricingPlan {
             PricingPlanBenefit.quickAutoFill,
             PricingPlanBenefit.multipleDatabases,
             PricingPlanBenefit.yubikeyChallengeResponse,
+            PricingPlanBenefit.passwordAudit,
             PricingPlanBenefit.businessClouds,
             PricingPlanBenefit.viewFieldReferences,
             PricingPlanBenefit.longDatabaseTimeout,

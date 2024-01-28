@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -9,12 +9,12 @@
 import Foundation
 
 extension Array where Element == URLQueryItem {
-    
+
     func getValue(name: String) -> String? {
         return first(where: { $0.name == name })?.value
     }
-    
+
     subscript (name: String) -> URLQueryItem? {
-        return first(where: { $0.name == name})
+        return first(where: { $0.name == name })
     }
 }

@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2022 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -12,7 +12,7 @@ public final class WebDAVDataSource: DataSource {
     func getAccessCoordinator() -> FileAccessCoordinator {
         return PassthroughFileAccessCoordinator()
     }
-    
+
     public func readFileInfo(
         at url: URL,
         fileProvider: FileProvider?,
@@ -45,8 +45,7 @@ public final class WebDAVDataSource: DataSource {
             completion: completion
         )
     }
-    
-    
+
     public func read(
         _ url: URL,
         fileProvider: FileProvider?,
@@ -78,7 +77,7 @@ public final class WebDAVDataSource: DataSource {
             completion: completion
         )
     }
-    
+
     public func write(
         _ data: ByteArray,
         to url: URL,
@@ -110,76 +109,6 @@ public final class WebDAVDataSource: DataSource {
             timeout: timeout,
             completionQueue: completionQueue,
             completion: completion
-        )
-    }
-    
-    public func readThenWrite(
-        from readURL: URL,
-        to writeURL: URL,
-        fileProvider: FileProvider?,
-        outputDataSource: @escaping (_ url: URL, _ oldData: ByteArray) throws -> ByteArray?,
-        timeout: Timeout,
-        queue: OperationQueue,
-        completionQueue: OperationQueue,
-        completion: @escaping FileOperationCompletion<Void>
-    ) {
-        assert(fileProvider == .keepassiumWebDAV)
-        guard Settings.current.isNetworkAccessAllowed else {
-            Diag.error("Network access denied")
-            completionQueue.addOperation {
-                completion(.failure(.networkAccessDenied))
-            }
-            return
-        }
-        
-        let operationQueue = queue
-        read(
-            readURL, 
-            fileProvider: fileProvider,
-            timeout: timeout,
-            queue: operationQueue,
-            completionQueue: operationQueue, 
-            completion: { [self] result in 
-                assert(operationQueue.isCurrent, "Should be still in the operation queue")
-                
-                switch result {
-                case .success(let remoteData):
-                    do {
-                        guard let dataToWrite = try outputDataSource(readURL, remoteData) 
-                        else {
-                            completionQueue.addOperation {
-                                completion(.success)
-                            }
-                            return
-                        }
-                        write(
-                            dataToWrite,
-                            to: writeURL, 
-                            fileProvider: fileProvider,
-                            timeout: Timeout(duration: timeout.duration),
-                            queue: operationQueue,
-                            completionQueue: completionQueue,
-                            completion: completion
-                        )
-                    } catch let fileAccessError as FileAccessError {
-                        Diag.error("Failed to write file [message: \(fileAccessError.localizedDescription)")
-                        completionQueue.addOperation {
-                            completion(.failure(fileAccessError))
-                        }
-                    } catch {
-                        Diag.error("Failed to write file [message: \(error.localizedDescription)")
-                        let fileAccessError = FileAccessError.systemError(error)
-                        completionQueue.addOperation {
-                            completion(.failure(fileAccessError))
-                        }
-                    }
-                case .failure(let fileAccessError):
-                    Diag.error("Failed to read file [message: \(fileAccessError.localizedDescription)")
-                    completionQueue.addOperation {
-                        completion(.failure(fileAccessError))
-                    }
-                }
-            }
         )
     }
 }

@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -10,17 +10,17 @@ import UIKit
 
 class GradientSeparatorView: UIView {
     private var gradient: CAGradientLayer?
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupGradient()
     }
-    
+
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupGradient()
     }
-    
+
     private func setupGradient() {
         super.awakeFromNib()
         let gradient = CAGradientLayer()
@@ -34,7 +34,7 @@ class GradientSeparatorView: UIView {
         layer.mask = gradient
         self.gradient = gradient
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         gradient?.frame = bounds

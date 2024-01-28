@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2022 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -10,26 +10,26 @@ import UIKit
 
 class TextFieldCell: UITableViewCell {
     var textField: ValidatingTextField! 
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: .value1, reuseIdentifier: reuseIdentifier)
         setupCell()
     }
-    
+
     required init?(coder: NSCoder) {
         fatalError("Not implemented")
     }
-    
+
     override func awakeFromNib() {
         super.awakeFromNib()
         setupCell()
     }
-    
+
     private func setupCell() {
         textField = makeTextField()
         textField.font = .preferredFont(forTextStyle: .body)
         textField.textColor = .label
-        
+
         contentView.addSubview(textField)
         textField.translatesAutoresizingMaskIntoConstraints = false
         textField.topAnchor
@@ -54,7 +54,7 @@ class TextFieldCell: UITableViewCell {
 
         selectionStyle = .none
     }
-    
+
     fileprivate func makeTextField() -> ValidatingTextField {
         return ValidatingTextField(frame: .zero)
     }

@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -10,14 +10,19 @@ import KeePassiumLib
 
 protocol GroupViewerDelegate: AnyObject {
     func didPressLockDatabase(in viewController: GroupViewerVC)
-    func didPressChangeMasterKey(at popoverAnchor: PopoverAnchor, in viewController: GroupViewerVC)
-    func didPressPrintDatabase(at popoverAnchor: PopoverAnchor, in viewController: GroupViewerVC)
+    func didPressChangeMasterKey(in viewController: GroupViewerVC)
+    func didPressPrintDatabase(in viewController: GroupViewerVC)
+    func didPressReloadDatabase(at popoverAnchor: PopoverAnchor, in viewController: GroupViewerVC)
     func didPressSettings(at popoverAnchor: PopoverAnchor, in viewController: GroupViewerVC)
+    func didPressPasswordAudit(in viewController: GroupViewerVC)
+    func didPressFaviconsDownload(in viewController: GroupViewerVC)
+    func didPressPasswordGenerator(at popoverAnchor: PopoverAnchor, in viewController: GroupViewerVC)
+    func didPressEncryptionSettings(in viewController: GroupViewerVC)
 
     func didSelectGroup(_ group: Group?, in viewController: GroupViewerVC) -> Bool
-    
+
     func didSelectEntry(_ entry: Entry?, in viewController: GroupViewerVC) -> Bool
-    
+
     func didPressCreateGroup(
         at popoverAnchor: PopoverAnchor,
         in viewController: GroupViewerVC
@@ -37,19 +42,19 @@ protocol GroupViewerDelegate: AnyObject {
         at popoverAnchor: PopoverAnchor,
         in viewController: GroupViewerVC
     )
-    
+
     func didPressDeleteGroup(
         _ group: Group,
         at popoverAnchor: PopoverAnchor,
         in viewController: GroupViewerVC
     )
-    
+
     func didPressDeleteEntry(
         _ entry: Entry,
         at popoverAnchor: PopoverAnchor,
         in viewController: GroupViewerVC
     )
-    
+
     func didPressRelocateItem(
         _ item: DatabaseItem,
         mode: ItemRelocationMode,
@@ -78,13 +83,14 @@ final class GroupViewerVC:
         static let entry = "EntryCell"
         static let nothingFound = "NothingFoundCell"
     }
-    
+
     weak var delegate: GroupViewerDelegate?
-    
+
     @IBOutlet private weak var sortOrderButton: UIBarButtonItem!
-    @IBOutlet private weak var changeMasterKeyButton: UIBarButtonItem!
-    @IBOutlet private weak var printButton: UIBarButtonItem!
-    
+    @IBOutlet private weak var databaseMenuButton: UIBarButtonItem!
+    @IBOutlet private weak var reloadDatabaseButton: UIBarButtonItem!
+    @IBOutlet private weak var passwordGeneratorButton: UIBarButtonItem!
+
     weak var group: Group? {
         didSet {
             refresh()
@@ -94,23 +100,26 @@ final class GroupViewerVC:
     var isGroupEmpty: Bool {
         return groupsSorted.isEmpty && entriesSorted.isEmpty
     }
-    
+
+    var canDownloadFavicons: Bool = true
+    var canChangeEncryptionSettings: Bool = true
+
     private var titleView = DatabaseItemTitleView()
-    
-    private var groupsSorted = Array<Weak<Group>>()
-    private var entriesSorted = Array<Weak<Entry>>()
+
+    private var groupsSorted = [Weak<Group>]()
+    private var entriesSorted = [Weak<Entry>]()
 
     private var createItemButton: UIBarButtonItem!
-    
+
     private var actionPermissions = DatabaseItem.ActionPermissions()
-    
+
     internal var announcements = [AnnouncementItem]() {
         didSet {
             guard isViewLoaded else { return }
             tableView.reloadSections([0], with: .automatic)
         }
     }
-    
+
     private var isActivateSearch: Bool = false
     private var searchHelper = SearchHelper()
     private var searchResults = [GroupedEntries]()
@@ -119,23 +128,23 @@ final class GroupViewerVC:
         guard let searchController = searchController else { return false }
         return searchController.isActive && (searchController.searchBar.text?.isNotEmpty ?? false)
     }
-    
+
     override var canDismissFromKeyboard: Bool {
         return !(searchController?.isActive ?? false)
     }
-    
+
     private var cellRefreshTimer: Timer?
     private var settingsNotifications: SettingsNotifications!
-    
-    
+
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 44.0
         tableView.register(AnnouncementCell.classForCoder(), forCellReuseIdentifier: CellID.announcement)
         tableView.selectionFollowsFocus = true
-        
+
         createItemButton = UIBarButtonItem(
             title: LString.actionCreate,
             image: .symbol(.plus),
@@ -143,12 +152,11 @@ final class GroupViewerVC:
             menu: nil)
         navigationItem.setRightBarButton(createItemButton, animated: false)
         navigationItem.titleView = titleView
-        
-        printButton.title = LString.actionPrint
-        printButton.image = .symbol(.printer)
-        
+        reloadDatabaseButton.title = LString.actionReloadDatabase
+        passwordGeneratorButton.title = LString.PasswordGenerator.titleRandomGenerator
+
         settingsNotifications = SettingsNotifications(observer: self)
-        
+
         let isRootGroup = group?.isRoot ?? false
         isActivateSearch = Settings.current.isStartWithSearch && isRootGroup
         setupSearch()
@@ -156,21 +164,20 @@ final class GroupViewerVC:
             navigationItem.hidesSearchBarWhenScrolling = false
         }
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        cellRefreshTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) {
-            [weak self] _ in
+
+        cellRefreshTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
             self?.refreshDynamicCells()
         }
         refresh()
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         settingsNotifications.startObserving()
-        
+
         navigationItem.hidesSearchBarWhenScrolling = true
         if isActivateSearch {
             isActivateSearch = false 
@@ -179,14 +186,14 @@ final class GroupViewerVC:
             }
         }
     }
-    
+
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         settingsNotifications.stopObserving()
         cellRefreshTimer?.invalidate()
         cellRefreshTimer = nil
     }
-    
+
     private func setupSearch() {
         searchController = UISearchController(searchResultsController: nil)
         navigationItem.searchController = searchController
@@ -201,7 +208,7 @@ final class GroupViewerVC:
         definesPresentationContext = true
         searchController.searchResultsUpdater = self
     }
-    
+
     override var keyCommands: [UIKeyCommand]? {
         return [
             UIKeyCommand(
@@ -212,7 +219,7 @@ final class GroupViewerVC:
             )
         ]
     }
-    
+
     @objc func activateSearch() {
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
@@ -220,10 +227,10 @@ final class GroupViewerVC:
             self.searchController.searchBar.becomeFirstResponderWhenSafe()
         }
     }
-    
+
     func refresh() {
         guard isViewLoaded, let group = group else { return }
-        
+
         titleView.titleLabel.setText(group.name, strikethrough: group.isExpired)
         titleView.iconView.image = UIImage.kpIcon(forGroup: group)
         navigationItem.title = titleView.titleLabel.text
@@ -234,21 +241,21 @@ final class GroupViewerVC:
         createItemButton.isEnabled =
             actionPermissions.canCreateGroup ||
             actionPermissions.canCreateEntry
-        changeMasterKeyButton.isEnabled = actionPermissions.canEditDatabase
-        
+
         createItemButton.menu = makeCreateItemMenu(for: createItemButton)
-        
+        configureDatabaseMenuButton(databaseMenuButton)
+
         if isSearchActive {
             updateSearchResults(for: searchController)
         } else {
             sortGroupItems()
         }
         tableView.reloadData()
-        
+
         sortOrderButton.menu = makeListSettingsMenu()
         sortOrderButton.image = .symbol(.listBullet)
     }
-    
+
     private func refreshDynamicCells() {
         tableView.visibleCells.forEach {
             if let entryCell = $0 as? GroupViewerEntryCell {
@@ -261,7 +268,7 @@ final class GroupViewerVC:
         groupsSorted.removeAll()
         entriesSorted.removeAll()
         guard let group = self.group else { return }
-        
+
         let groupSortOrder = Settings.current.groupSortOrder
         let weakGroupsSorted = group.groups
             .sorted { groupSortOrder.compare($0, $1) }
@@ -269,12 +276,97 @@ final class GroupViewerVC:
         let weakEntriesSorted = group.entries
             .sorted { groupSortOrder.compare($0, $1) }
             .map { Weak($0) }
-        
+
         groupsSorted.append(contentsOf: weakGroupsSorted)
         entriesSorted.append(contentsOf: weakEntriesSorted)
     }
-    
-    
+
+    private func configureDatabaseMenuButton(_ barButton: UIBarButtonItem) {
+        barButton.title = LString.titleDatabaseOperations
+        let lockDatabaseAction = UIAction(
+            title: LString.actionLockDatabase,
+            image: .symbol(.lock),
+            attributes: [.destructive],
+            handler: { [weak self] _ in
+                guard let self else { return }
+                self.delegate?.didPressLockDatabase(in: self)
+            }
+        )
+        let printDatabaseAction = UIAction(
+            title: LString.actionPrint,
+            image: .symbol(.printer),
+            handler: { [weak self] _ in
+                guard let self else { return }
+                self.delegate?.didPressPrintDatabase(in: self)
+            }
+        )
+        let changeMasterKeyAction = UIAction(
+            title: LString.actionChangeMasterKey,
+            image: .symbol(.key),
+            handler: { [weak self] _ in
+                guard let self else { return }
+                self.delegate?.didPressChangeMasterKey(in: self)
+            }
+        )
+        let passwordAuditAction = UIAction(
+            title: LString.titlePasswordAudit,
+            image: .symbol(.networkBadgeShield),
+            handler: { [weak self] _ in
+                guard let self else { return }
+                self.delegate?.didPressPasswordAudit(in: self)
+            }
+        )
+        let faviconsDownloadAction = UIAction(
+            title: LString.actionDownloadFavicons,
+            image: .symbol(.wandAndStars),
+            handler: { [weak self] _ in
+                guard let self else { return }
+                self.delegate?.didPressFaviconsDownload(in: self)
+            }
+        )
+
+        let encryptionSettingsAction = UIAction(
+            title: LString.titleEncryptionSettings,
+            image: .symbol(.lockShield),
+            handler: { [weak self] _ in
+                guard let self else { return }
+                self.delegate?.didPressEncryptionSettings(in: self)
+            }
+        )
+
+        if !actionPermissions.canEditDatabase {
+            changeMasterKeyAction.attributes.insert(.disabled)
+            faviconsDownloadAction.attributes.insert(.disabled)
+            encryptionSettingsAction.attributes.insert(.disabled)
+        }
+
+        let frequentMenu = UIMenu(
+            options: [.displayInline],
+            children: [
+                passwordAuditAction,
+                canDownloadFavicons ? faviconsDownloadAction : nil,
+                printDatabaseAction,
+            ].compactMap { $0 }
+        )
+        let rareMenu = UIMenu(
+            options: [.displayInline],
+            children: [
+                changeMasterKeyAction,
+                canChangeEncryptionSettings ? encryptionSettingsAction : nil,
+            ].compactMap { $0 }
+        )
+        let lockMenu = UIMenu(options: [.displayInline], children: [lockDatabaseAction])
+
+        var menuElements = [frequentMenu, rareMenu, lockMenu]
+        if #available(iOS 16, *) {
+            barButton.preferredMenuElementOrder = .fixed
+        } else {
+            menuElements.reverse()
+        }
+        let menu = UIMenu(children: menuElements)
+        barButton.menu = menu
+    }
+
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         if isSearchActive {
@@ -286,19 +378,19 @@ final class GroupViewerVC:
 
     override func tableView(
         _ tableView: UITableView,
-        titleForHeaderInSection section: Int) -> String?
-    {
+        titleForHeaderInSection section: Int
+    ) -> String? {
         if isSearchActive {
             return searchResults.isEmpty ? nil : searchResults[section].group.name
         } else {
             return nil
         }
     }
-    
+
     override func tableView(
         _ tableView: UITableView,
-        numberOfRowsInSection section: Int) -> Int
-    {
+        numberOfRowsInSection section: Int
+    ) -> Int {
         if isSearchActive {
             if section < searchResults.count {
                 return searchResults[section].entries.count
@@ -316,8 +408,8 @@ final class GroupViewerVC:
 
     override func tableView(
         _ tableView: UITableView,
-        cellForRowAt indexPath: IndexPath) -> UITableViewCell
-    {
+        cellForRowAt indexPath: IndexPath
+    ) -> UITableViewCell {
         if isSearchActive {
             return makeSearchResultCell(at: indexPath)
         } else {
@@ -328,7 +420,7 @@ final class GroupViewerVC:
             }
         }
     }
-    
+
     private func makeAnnouncementCell(at indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView
             .dequeueReusableCell(withIdentifier: CellID.announcement, for: indexPath)
@@ -337,7 +429,7 @@ final class GroupViewerVC:
         cell.announcementView.apply(announcement)
         return cell
     }
-    
+
     private func makeSearchResultCell(at indexPath: IndexPath) -> UITableViewCell {
         if isSearchActive && searchResults.isEmpty {
             return tableView.dequeueReusableCell(
@@ -353,12 +445,12 @@ final class GroupViewerVC:
         setupEntryCell(entryCell, entry: entry)
         return entryCell
     }
-    
+
     private func makeDatabaseItemCell(at indexPath: IndexPath) -> UITableViewCell {
         if isGroupEmpty {
             return tableView.dequeueReusableCell(withIdentifier: CellID.emptyGroup, for: indexPath)
         }
-        
+
         if let group = getGroup(at: indexPath) {
             return getGroupCell(for: group, at: indexPath)
         } else if let entry = getEntry(at: indexPath) {
@@ -368,13 +460,13 @@ final class GroupViewerVC:
             return tableView.dequeueReusableCell(withIdentifier: CellID.group, for: indexPath)
         }
     }
-    
+
     private func getGroupCell(for group: Group, at indexPath: IndexPath) -> GroupViewerGroupCell {
         let cell = tableView.dequeueReusableCell(
             withIdentifier: CellID.group,
             for: indexPath)
             as! GroupViewerGroupCell
-        
+
         let itemCount = group.groups.count + group.entries.count
         cell.titleLabel.setText(group.name, strikethrough: group.isExpired)
         cell.subtitleLabel?.setText("\(itemCount)", strikethrough: group.isExpired)
@@ -390,7 +482,7 @@ final class GroupViewerVC:
             withIdentifier: CellID.entry,
             for: indexPath)
             as! GroupViewerEntryCell
-        
+
         setupEntryCell(entryCell, entry: entry)
         return entryCell
     }
@@ -399,16 +491,16 @@ final class GroupViewerVC:
         cell.titleLabel.setText(entry.resolvedTitle, strikethrough: entry.isExpired)
         cell.subtitleLabel?.setText(getDetailInfo(for: entry), strikethrough: entry.isExpired)
         cell.iconView?.image = UIImage.kpIcon(forEntry: entry)
-        
+
         cell.totpGenerator = TOTPGeneratorFactory.makeGenerator(for: entry)
         cell.otpCopiedHandler = { [weak self] in
             self?.showNotification(LString.otpCodeCopiedToClipboard)
         }
-        
+
         cell.hasAttachments = entry.attachments.count > 0
         cell.accessibilityCustomActions = getAccessibilityActions(for: entry)
     }
-    
+
     private func getDetailInfo(for entry: Entry) -> String? {
         switch Settings.current.entryListDetail {
         case .none:
@@ -431,19 +523,18 @@ final class GroupViewerVC:
             return dateFormatter.string(from: entry.lastModificationTime)
         }
     }
-    
-    
+
+
     @available(iOS 13, *)
     private func getAccessibilityActions(for entry: Entry) -> [UIAccessibilityCustomAction] {
         var actions = [UIAccessibilityCustomAction]()
-        
+
         let nonTitleFields = entry.fields.filter { $0.name != EntryField.title }
-        nonTitleFields.reversed().forEach { (field) in
+        nonTitleFields.reversed().forEach { field in
             let actionName = String.localizedStringWithFormat(
                 LString.actionCopyToClipboardTemplate,
                 field.name)
-            let action = UIAccessibilityCustomAction(name: actionName) {
-                [weak field] _ -> Bool in
+            let action = UIAccessibilityCustomAction(name: actionName) { [weak field] _ -> Bool in
                 if let fieldValue = field?.resolvedValue {
                     Clipboard.general.insert(fieldValue)
                     UIAccessibility.post(
@@ -457,7 +548,7 @@ final class GroupViewerVC:
         }
         return actions
     }
-    
+
 
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if isSearchActive {
@@ -469,7 +560,7 @@ final class GroupViewerVC:
         }
     }
 
-    
+
     private func getIndexPath(for group: Group) -> IndexPath? {
         guard let groupIndex = groupsSorted.firstIndex(where: { $0.value === group }) else {
             return nil
@@ -486,7 +577,7 @@ final class GroupViewerVC:
         let indexPath = IndexPath(row: rowNumber, section: 0)
         return indexPath
     }
-    
+
     func selectEntry(_ entry: Entry?, animated: Bool) {
         guard let entry = entry else {
             if let selectedIndexPath = tableView.indexPathForSelectedRow {
@@ -500,7 +591,7 @@ final class GroupViewerVC:
         tableView.selectRow(at: indexPath, animated: animated, scrollPosition: .none)
         tableView.scrollToRow(at: indexPath, at: .none, animated: animated)
     }
-    
+
     func getGroup(at indexPath: IndexPath) -> Group? {
         if isSearchActive {
             return nil
@@ -510,7 +601,7 @@ final class GroupViewerVC:
             return groupsSorted[groupIndex].value
         }
     }
-    
+
     func getEntry(at indexPath: IndexPath) -> Entry? {
         if isSearchActive {
             guard indexPath.section < searchResults.count else { return  nil }
@@ -533,7 +624,7 @@ final class GroupViewerVC:
         }
         return nil
     }
-    
+
     func didSelectItem(at indexPath: IndexPath) {
         var shouldKeepSelection = true
         if let selectedGroup = getGroup(at: indexPath) {
@@ -541,17 +632,16 @@ final class GroupViewerVC:
         } else if let selectedEntry = getEntry(at: indexPath) {
             shouldKeepSelection = delegate?.didSelectEntry(selectedEntry, in: self) ?? true
         }
-        
+
         if !shouldKeepSelection {
             tableView.deselectRow(at: indexPath, animated: false)
         }
     }
 
-    
+
     private func makeListSettingsMenu() -> UIMenu {
         let currentDetail = Settings.current.entryListDetail
-        let entrySubtitleActions = Settings.EntryListDetail.allValues.map {
-            entryListDetail in
+        let entrySubtitleActions = Settings.EntryListDetail.allValues.map { entryListDetail in
             UIAction(
                 title: entryListDetail.longTitle,
                 state: (currentDetail == entryListDetail) ? .on : .off,
@@ -567,7 +657,7 @@ final class GroupViewerVC:
             options: [],
             children: entrySubtitleActions
         )
-        
+
         let sortOrderMenuItems = UIMenu.makeDatabaseItemSortMenuItems(
             current: Settings.current.groupSortOrder,
             handler: { [weak self] newSortOrder in
@@ -589,7 +679,7 @@ final class GroupViewerVC:
             children: [sortOrderMenu, entrySubtitleMenu]
         )
     }
-    
+
     override func getContextActionsForRow(
         at indexPath: IndexPath,
         forSwipe: Bool
@@ -605,7 +695,7 @@ final class GroupViewerVC:
         } else {
             return []
         }
-        
+
         let editAction = ContextualAction(
             title: LString.actionEdit,
             imageName: .squareAndPencil,
@@ -633,9 +723,9 @@ final class GroupViewerVC:
                 self?.didPressEmptyRecycleBinGroup(at: indexPath)
             }
         )
-         
+
         var actions = [ContextualAction]()
-        
+
         if forSwipe {
             if permissions.canDeleteItem {
                 actions.append(deleteAction)
@@ -677,33 +767,31 @@ final class GroupViewerVC:
         }
         return actions
     }
-    
+
 
     private func makeCreateItemMenu(for button: UIBarButtonItem) -> UIMenu {
         let popoverAnchor = PopoverAnchor(barButtonItem: button)
-        
+
         let createGroupAction = UIAction(
             title: LString.actionCreateGroup,
             image: nil,
             attributes: actionPermissions.canCreateGroup ? [] : [.disabled],
-            handler: {
-                [weak self, popoverAnchor] _ in
+            handler: { [weak self, popoverAnchor] _ in
                 guard let self = self else { return }
                 self.delegate?.didPressCreateGroup(at: popoverAnchor, in: self)
             }
         )
-        
+
         let createEntryAction = UIAction(
             title: LString.actionCreateEntry,
             image: nil,
             attributes: actionPermissions.canCreateEntry ? [] : [.disabled],
-            handler: {
-                [weak self, popoverAnchor] _ in
+            handler: { [weak self, popoverAnchor] _ in
                 guard let self = self else { return }
                 self.delegate?.didPressCreateEntry(at: popoverAnchor, in: self)
             }
         )
-        
+
         return UIMenu.make(
             title: "",
             reverse: false,
@@ -711,7 +799,7 @@ final class GroupViewerVC:
             children: [createGroupAction, createEntryAction]
         )
     }
-    
+
     func didPressEditItem(at indexPath: IndexPath) {
         let popoverAnchor = PopoverAnchor(tableView: tableView, at: indexPath)
         if let targetGroup = getGroup(at: indexPath) {
@@ -722,35 +810,33 @@ final class GroupViewerVC:
             assertionFailure("Unknown database item type")
         }
     }
-    
+
     func didPressDeleteItem(at indexPath: IndexPath) {
         let popoverAnchor = PopoverAnchor(tableView: tableView, at: indexPath)
 
         let confirmationAlert = UIAlertController(title: "", message: nil, preferredStyle: .alert)
         if let targetGroup = getGroup(at: indexPath) {
             confirmationAlert.title = targetGroup.name
-            confirmationAlert.addAction(title: LString.actionDelete, style: .destructive) {
-                [weak self] _ in
+            confirmationAlert.addAction(title: LString.actionDelete, style: .destructive) { [weak self] _ in
                 guard let self = self else { return }
                 self.delegate?.didPressDeleteGroup(targetGroup, at: popoverAnchor, in: self)
             }
         } else if let targetEntry = getEntry(at: indexPath) {
             confirmationAlert.title = targetEntry.resolvedTitle
-            confirmationAlert.addAction(title: LString.actionDelete, style: .destructive) {
-                [weak self] _ in
+            confirmationAlert.addAction(title: LString.actionDelete, style: .destructive) { [weak self] _ in
                 guard let self = self else { return }
                 self.delegate?.didPressDeleteEntry(targetEntry, at: popoverAnchor, in: self)
             }
         } else {
             assertionFailure("Unknown database item type")
         }
-        
+
         confirmationAlert.addAction(title: LString.actionCancel, style: .cancel, handler: nil)
         confirmationAlert.modalPresentationStyle = .popover
         popoverAnchor.apply(to: confirmationAlert.popoverPresentationController)
         present(confirmationAlert, animated: true, completion: nil)
     }
-    
+
     private func didPressEmptyRecycleBinGroup(at indexPath: IndexPath) {
         let popoverAnchor = PopoverAnchor(tableView: tableView, at: indexPath)
         guard let targetGroup = getGroup(at: indexPath) else {
@@ -761,8 +847,7 @@ final class GroupViewerVC:
             title: LString.confirmEmptyRecycleBinGroup,
             message: nil,
             dismissButtonTitle: LString.actionCancel)
-        confirmationAlert.addAction(title: LString.actionEmptyRecycleBinGroup, style: .destructive) {
-            [weak self] _ in
+        confirmationAlert.addAction(title: LString.actionEmptyRecycleBinGroup, style: .destructive) { [weak self] _ in
             guard let self = self else { return }
             self.delegate?.didPressEmptyRecycleBinGroup(targetGroup, at: popoverAnchor, in: self)
         }
@@ -777,40 +862,24 @@ final class GroupViewerVC:
             assertionFailure()
             return
         }
-        
+
         let popoverAnchor = PopoverAnchor(tableView: tableView, at: indexPath)
         delegate?.didPressRelocateItem(selectedItem, mode: mode, at: popoverAnchor, in: self)
     }
-    
-    @IBAction func didPressSettings(_ sender: UIBarButtonItem) {
+
+    @IBAction private func didPressReloadDatabase(_ sender: UIBarButtonItem) {
+        let popoverAnchor = PopoverAnchor(barButtonItem: sender)
+        delegate?.didPressReloadDatabase(at: popoverAnchor, in: self)
+    }
+
+    @IBAction private func didPressSettings(_ sender: UIBarButtonItem) {
         let popoverAnchor = PopoverAnchor(barButtonItem: sender)
         delegate?.didPressSettings(at: popoverAnchor, in: self)
     }
-    
-    @IBAction func didPressLockDatabase(_ sender: UIBarButtonItem) {
+
+    @IBAction private func didPressPasswordGenerator(_ sender: UIBarButtonItem) {
         let popoverAnchor = PopoverAnchor(barButtonItem: sender)
-        
-        let confirmationAlert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        confirmationAlert.addAction(title: LString.actionLockDatabase, style: .destructive) {
-            [weak self] _ in
-            guard let self = self else { return }
-            self.delegate?.didPressLockDatabase(in: self)
-        }
-        confirmationAlert.addAction(title: LString.actionCancel, style: .cancel, handler: nil)
-        
-        confirmationAlert.modalPresentationStyle = .popover
-        popoverAnchor.apply(to: confirmationAlert.popoverPresentationController)
-        present(confirmationAlert, animated: true, completion: nil)
-    }
-    
-    @IBAction func didPressChangeDatabaseSettings(_ sender: UIBarButtonItem) {
-        let popoverAnchor = PopoverAnchor(barButtonItem: sender)
-        delegate?.didPressChangeMasterKey(at: popoverAnchor, in: self)
-    }
-    
-    @IBAction func didPressPrintDatabase(_ sender: UIBarButtonItem) {
-        let popoverAnchor = PopoverAnchor(barButtonItem: sender)
-        delegate?.didPressPrintDatabase(at: popoverAnchor, in: self)
+        delegate?.didPressPasswordGenerator(at: popoverAnchor, in: self)
     }
 }
 

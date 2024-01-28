@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -9,13 +9,13 @@
 import UIKit
 
 extension UIApplication {
-    
+
     var currentScene: UIWindowScene? {
         connectedScenes
-            .first { $0.activationState == .foregroundActive}
+            .first { $0.activationState == .foregroundActive }
             as? UIWindowScene
     }
-    
+
     public func getKeyWindow() -> UIWindow? {
         return windows.first { $0.isKeyWindow }
     }

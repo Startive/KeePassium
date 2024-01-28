@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2022 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -10,11 +10,11 @@ import UIKit
 
 final class PasswordGeneratorLengthCell: UITableViewCell {
     typealias ValueChangeHandler = (Int) -> Void
-    
+
     @IBOutlet private weak var titleLabel: UILabel!
     @IBOutlet private weak var valueLabel: UILabel!
     @IBOutlet private weak var slider: UISlider!
-    
+
     var title: String? {
         get { titleLabel.text }
         set {
@@ -38,14 +38,14 @@ final class PasswordGeneratorLengthCell: UITableViewCell {
         }
     }
     var valueChanged: ValueChangeHandler?
-    
+
     override func awakeFromNib() {
         super.awakeFromNib()
         accessibilityElements = [slider as Any]
         slider.addTarget(self, action: #selector(sliderDidChangeValue), for: .valueChanged)
         selectionStyle = .none
     }
-    
+
     @objc
     private func sliderDidChangeValue(_ sender: UISlider) {
         let value = Int(slider.value)

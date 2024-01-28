@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -10,9 +10,9 @@ import Foundation
 
 public class TemporaryFileURL {
     public private(set) var url: URL
-    
+
     private var isErased = false
-    
+
     public init(fileName: String) throws {
         let fileManager = FileManager.default
         let tmpFileDir = fileManager.temporaryDirectory
@@ -28,11 +28,11 @@ public class TemporaryFileURL {
             throw error
         }
     }
-    
+
     deinit {
         cleanup()
     }
-    
+
     public func cleanup() {
         guard !isErased else {
             return

@@ -1,13 +1,13 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
 //  by the Free Software Foundation: https://www.gnu.org/licenses/).
 //  For commercial licensing, please contact the author.
 
-import UIKit
 import KeePassiumLib
+import UIKit
 
 protocol AboutDelegate: AnyObject {
     func didPressContactSupport(at popoverAnchor: PopoverAnchor, in viewController: AboutVC)
@@ -24,9 +24,9 @@ final class AboutVC: UITableViewController {
     @IBOutlet private weak var acceptInputFromAutoFillCell: UITableViewCell!
     @IBOutlet private weak var privacyPolicyCell: UITableViewCell!
     @IBOutlet private weak var privacyPolicyLabel: UILabel!
-    
+
     weak var delegate: AboutDelegate?
-    
+
     let cellTagToURL: [Int: String] = [
         10: "https://github.com/keepassium/KeePassium-L10n",
         20: "https://keepass.info",
@@ -49,6 +49,7 @@ final class AboutVC: UITableViewController {
         130: "https://github.com/1024jp/GzipSwift",
         140: "https://github.com/norio-nomura/Base32",
         160: "https://github.com/scalessec/Toast-Swift",
+        165: "https://github.com/dropbox/zxcvbn-ios",
         170: "https://eff.org/dice",
     ]
 
@@ -56,7 +57,7 @@ final class AboutVC: UITableViewController {
         super.viewDidLoad()
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 44
-        
+
         var versionParts = ["v\(AppInfo.version).\(AppInfo.build)"]
         if Settings.current.isTestEnvironment {
             versionParts.append("beta")
@@ -75,7 +76,7 @@ final class AboutVC: UITableViewController {
             privacyPolicyLabel.text = LString.About.offlinePrivacyPolicyText
         }
     }
-    
+
     override func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         if section == 0 {
             return 0.1
@@ -83,7 +84,7 @@ final class AboutVC: UITableViewController {
             return super.tableView(tableView, heightForHeaderInSection: section)
         }
     }
-    
+
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = super.tableView(tableView, cellForRowAt: indexPath)
         if cell == acceptInputFromAutoFillCell {
@@ -91,11 +92,11 @@ final class AboutVC: UITableViewController {
         }
         return cell
     }
-    
+
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         guard let selectedCell = tableView.cellForRow(at: indexPath) else { return }
-        
+
         let popoverAnchor = PopoverAnchor(tableView: tableView, at: indexPath)
         switch selectedCell {
         case contactSupportCell:
@@ -113,6 +114,6 @@ final class AboutVC: UITableViewController {
             if let urlString = cellTagToURL[selectedCell.tag], let url = URL(string: urlString) {
                 delegate?.didPressOpenURL(url, at: popoverAnchor, in: self)
             }
-        } 
+        }
     }
 }

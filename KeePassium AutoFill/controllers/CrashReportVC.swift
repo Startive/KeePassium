@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -14,20 +14,20 @@ protocol CrashReportDelegate: AnyObject {
 
 final class CrashReportVC: UIViewController {
     @IBOutlet weak var learnMoreButton: UIButton!
-    
+
     public weak var delegate: CrashReportDelegate?
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
         learnMoreButton.setTitle(LString.actionLearnMore, for: .normal)
     }
-    
-    @IBAction func didPressDismiss(_ sender: Any) {
+
+    @IBAction private func didPressDismiss(_ sender: Any) {
         delegate?.didPressDismiss(in: self)
     }
-    
-    @IBAction func didPressLearnMore(_ sender: UIButton) {
+
+    @IBAction private func didPressLearnMore(_ sender: UIButton) {
         let urlOpener = URLOpener(self)
         urlOpener.open(url: URL.AppHelp.autoFillMemoryLimits)
     }

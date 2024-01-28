@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -17,20 +17,19 @@ class FileInfoReloader: Synchronizable {
     }
 
     private var refreshingRefsCount = 0
-    
-    typealias UpdateHandler = (_ ref: URLReference) -> ()
-    
-    
+
+    typealias UpdateHandler = (_ ref: URLReference) -> Void
+
     public func getInfo(
         for refs: [URLReference],
         update updateHandler: @escaping UpdateHandler,
-        completion: @escaping ()->())
-    {
+        completion: @escaping () -> Void
+    ) {
         guard refs.count > 0 else {
             completion()
             return
         }
-        
+
         for ref in refs {
             guard !ref.isRefreshingInfo else {
                 continue

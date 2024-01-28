@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2022 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -9,9 +9,9 @@
 import KeePassiumLib
 
 final class PasswordGeneratorLabel: UILabel {
-    
+
     var accessibilityIsPhrase = false
-    
+
     override var text: String? {
         get {
             super.text
@@ -21,13 +21,13 @@ final class PasswordGeneratorLabel: UILabel {
             updateAccessibility()
         }
     }
-    
+
     private func updateAccessibility() {
         accessibilityLabel = LString.PasswordGenerator.titleGeneratedText
         accessibilityHint = LString.A11y.hintActivateToListen
         accessibilityValue = nil
     }
-    
+
     override func accessibilityActivate() -> Bool {
         guard let text = text else {
             return false
@@ -45,7 +45,7 @@ final class PasswordGeneratorLabel: UILabel {
         UIAccessibility.post(notification: .layoutChanged, argument: self)
         return true
     }
-    
+
     override func accessibilityElementDidLoseFocus() {
         accessibilityValue = nil
     }

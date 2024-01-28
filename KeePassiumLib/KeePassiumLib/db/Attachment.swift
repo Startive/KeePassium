@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -29,7 +29,7 @@ public class Attachment: Eraseable {
         }
         return uncompressedSize
     }
-    
+
     public init(name: String, isCompressed: Bool, data: ByteArray) {
         self.name = name
         self.isCompressed = isCompressed
@@ -39,7 +39,7 @@ public class Attachment: Eraseable {
     deinit {
         erase()
     }
-    
+
     public func clone() -> Attachment {
         return Attachment(
             name: self.name,
@@ -47,7 +47,7 @@ public class Attachment: Eraseable {
             data: self.data
         )
     }
-    
+
     public func erase() {
         name.erase()
         isCompressed = false

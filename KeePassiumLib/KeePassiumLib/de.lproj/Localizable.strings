@@ -10,6 +10,12 @@
 /* Call to action: perform accessibilty `activate` action to listen to text/content. */
 "[Accessibility/activateToListen]" = "Zum Anhören aktivieren.";
 
+/* Short name of the default/system font. For example: `Font: Default` */
+"[Appearance/DefaultFont/shortTitle]" = "Standard";
+
+/* Title of a setting option: font */
+"[Appearance/Font/title]" = "Schriftart";
+
 /* Title of a setting option: font size */
 "[Appearance/TextSize/title]" = "Textgröße";
 
@@ -136,8 +142,62 @@
 /* Action: add/import an image as a custom icon */
 "[Database/CustomIcon/add]" = "Benutzerdefiniertes Symbol hinzufügen";
 
+/* Action: download icon of a website */
+"[Database/CustomIcon/DownloadFavicon/action]" = "Favicon herunterladen";
+
+/* Action/button to download favicons of websites mentioned in selected entries. */
+"[Database/CustomIcon/DownloadFavicons/action]" = "Favicons herunterladen";
+
+/* Report of favicon download results. */
+"[Database/CustomIcon/DownloadFavicons/stats]" = "Bearbeitete Einträge: %1$d\nAktualisierte Symbole: %2$d";
+
+/* Status message: multiple website favicons are being downloaded */
+"[Database/CustomIcon/DownloadFavicons/status]" = "Favicons werden heruntergeladen";
+
+/* Status message: a website favicon is being downloaded */
+"[Database/CustomIcon/DownloadOneFavicon/status]" = "Favicon wird heruntergeladen";
+
 /* Message to confirm deletion of a database file. (This deletes the file itself) */
 "[Database/Delete/Confirm/text] Delete database file?\n Make sure you have a backup." = "Datenbankdatei löschen?\n Stellen Sie sicher, dass Sie ein Backup haben.";
+
+/* Action to modify database encryption settings. */
+"[Database/EncryptionSettings/Change/action]" = "Verschlüsselung konfigurieren";
+
+/* Parameter name in database encryption settings. Example: 'Encryption Algorithm: AES-256' */
+"[Database/EncryptionSettings/dataCipher]" = "Chiffrier-Algorithmus";
+
+/* Parameter name in database encryption settings. Defines the number of times/iterations a calculation (transform) should be executed. Example: 'Transform Rounds: 100' */
+"[Database/EncryptionSettings/iterations]" = "Iterationen";
+
+/* Parameter name in database encryption settings. This is a term, see https://en.wikipedia.org/wiki/Key_derivation_function. Example: 'Key Derivation Function: Argon2' */
+"[Database/EncryptionSettings/kdf]" = "Schlüsselableitungsfunktion";
+
+/* Parameter name in database encryption settings. Defines the amount of memory that should be used by an algorithm. Example: 'Memory Usage: 16 MB' */
+"[Database/EncryptionSettings/memory]" = "Speichernutzung";
+
+/* Warning for too high value of the `Memory usage` parameter in database encryption settings. */
+"[Database/EncryptionSettings/memoryAutoFillWarning]" = "Hohe Speicheranforderungen können das autom. Ausfüllen von Passwörtern für die Datenbank deaktivieren.";
+
+/* Action/button button in database encryption settings. Resets the settings to recommended values. */
+"[Database/EncryptionSettings/reset]" = "Empfohlene Einstellung wählen";
+
+/* Parameter name in database encryption settings. Defines the number of computations to run in parallel/simultaneously. Example: 'Parallelism: 2 threads' */
+"[Database/EncryptionSettings/threads]" = "Parallelisierung";
+
+/* Title: database encryption settings. */
+"[Database/EncryptionSettings/title]" = "Verschlüsselung";
+
+/* Info message when changing database file format. */
+"[Database/FormatVersion/Conversion/allDataPreserved]" = "Alle Ihre Daten bleiben erhalten.";
+
+/* Info message when the app needs to change database file format. [oldFormat, newFormat: String] */
+"[Database/FormatVersion/Upgrade/text]" = "KeePassium muss das Dateiformat Ihrer Datenbank aktualisieren (von %1$@ auf %2$@). Möglicherweise müssen Sie auch andere Anwendungen aktualisieren, die diese Datenbank verwenden.";
+
+/* Title of an info message when the app needs to change database file format. */
+"[Database/FormatVersion/Upgrade/title]" = "Bevor wir fortfahren";
+
+/* Status of a database item (entry or group) after it was edited. */
+"[Database/Item/Edited/state]" = "Bearbeitet";
 
 /* Notification when user tries to copy data from KDBX to older KDB database. */
 "[Database/LesserTargetFormat/warning]" = "Dies ist ein älteres Datenbankformat, wodurch einige Daten verloren gehen können.";
@@ -175,6 +235,9 @@
 /* Status message: loading a database */
 "[Database/Loading/Status] Loading..." = "Lade...";
 
+/* Action/button: change master key of a database. */
+"[Database/MasterKey/Change/action]" = "Hauptpasswort ändern";
+
 /* Notification after changing database master key */
 "[Database/MasterKey/changed] Master key successfully changed" = "Hauptschlüssel erfolgreich geändert";
 
@@ -202,6 +265,9 @@
 /* Title of a warning message, shown after opening a problematic database */
 "[Database/Opened/Warning/title] Your database is ready, but there was an issue." = "Ihre Datenbank wurde geöffnet, aber es gab ein Problem.";
 
+/* Title of a list with database-related actions (e.g. lock database, change master key, etc) */
+"[Database/Operations/title]" = "Datenbank-Operationen";
+
 /* Status message: preparing database print preview. */
 "[Database/Print/preparingPreview]" = "Vorschau vorbereiten …";
 
@@ -226,8 +292,14 @@
 /* Suggested solution/call to action when intermediate sync app fails. */
 "[Database/RecommendRemote/callToAction]" = "Versuchen Sie, sich direkt von KeePassium aus mit Ihrem Remote-Speicher zu verbinden.";
 
+/* Action/button */
+"[Database/Reload/action]" = "Datenbank neu laden";
+
 /* Message to confirm removal of database file from the app. (This keeps the file, but removes its reference from the app.) */
 "[Database/Remove/Confirm/text] Remove database from the list?\n The file will remain intact and you can add it again later." = "Datenbank aus der Liste entfernen?\n Die Datei bleibt erhalten und Sie können sie später erneut hinzufügen.";
+
+/* Action/button to save the current database. */
+"[Database/Save/action] Save Database" = "Datenbank speichern unter";
 
 /* Status message: finished saving a database */
 "[Database/Saving/Status] Done" = "Fertig";
@@ -463,6 +535,9 @@
 /* Notification/confirmation message */
 "[Diagnostics] Diagnostic log has been copied to clipboard." = "Das Diagnoseprotokoll wurde in die Zwischenablage kopiert.";
 
+/* Action: select a different icon for an item */
+"[EditEntry/Icon/change]" = "Symbol ändern";
+
 /* Action: choose a username from a list */
 "[EditEntry/UserName/choose]" = "Auswählen";
 
@@ -498,6 +573,9 @@
 
 /* Action: copy a reference to the selected entry field to clipboard */
 "[Entry/Field/CopyReference/action]" = "Feldreferenz kopieren";
+
+/* Name of an entry field */
+"[Entry/Field/name] Icon" = "Symbol";
 
 /* Name of an entry field */
 "[Entry/Field/name] Notes" = "Kommentare";
@@ -841,6 +919,9 @@
 /* Checkbox/Button to show a text field in its full size */
 "[Generic] Show more" = "Mehr anzeigen";
 
+/* Action/button to select some items in a list. */
+"[Generic/Action/SelectItems]" = "Auswählen";
+
 /* Message to confirm deletion of an item. */
 "[Generic/ConfirmDelete/title] Are you sure?" = "Sind Sie sicher?";
 
@@ -886,6 +967,9 @@
 /* Title of an warning message */
 "[Generic/title] Warning" = "Warnung";
 
+/* Warning message template. Swap the icon and message for right-to-left languages. */
+"[Generic/WarningWithIcon/template]" = "⚠️ %@";
+
 /* VoiceOver description of a group [groupTitle: String, itemCount: Int] */
 "[Group/a11y/description]" = "%@, Gruppe";
 
@@ -906,6 +990,9 @@
 
 /* Title of the confirmation dialog for `Empty Recycle Bin` action */
 "[Group/RecycleBin/Empty/confirmTitle]" = "Alles im Papierkorb endgültig löschen?";
+
+/* Title of an input field for group name */
+"[GroupEditor/Name/placeholder]" = "Gruppenname";
 
 /* An option in Group Viewer settings. Example: 'Sort Order: By Creation Date (New..Old)' */
 "[GroupSortOrder/longTitle] By Creation Date (New..Old)" = "Erstellungsdatum (neueste zuerst)";
@@ -957,6 +1044,45 @@
 
 /* Notification that an archived/historical item (e.g entry) has been successfully restored */
 "[Item/History/Restored]" = "Vorherige Version wiederhergestellt";
+
+/* Title of a list with advanced/expert-level properties of a database item (e.g. entry) */
+"[Item/Properties/Advanced/title]" = "Erweitert";
+
+/* Possible value of the `Password AutoFill` setting. For example: 'Password AutoFill: Allowed' */
+"[Item/Properties/AutoFill/allowed]" = "Zulässig";
+
+/* Possible value of the `Password AutoFill` setting. For example: 'Password AutoFill: Disabled' */
+"[Item/Properties/AutoFill/disabled]" = "Deaktiviert";
+
+/* Title of a setting: whether the item (e.g. entry) should be used in AutoFill feature. App-specific setting for KeePassXC. */
+"[Item/Properties/AutoFill/KeePassXC/title]" = "Passwort automatisch ausfüllen (KeePassXC)";
+
+/* Title of a setting: whether the item (e.g. entry) should be used in AutoFill feature */
+"[Item/Properties/AutoFill/title]" = "Passwort automatisch ausfüllen";
+
+/* Default value of an item property. For example: 'Password Audit: Inherit from parent group (Allowed)'. [inheritedValue: String] */
+"[Item/Properties/inheritedValue]" = "Von übergeordneter Gruppe erben (%@)";
+
+/* Possible value of the `Password Audit` setting. For example: 'Password Audit: Allowed' */
+"[Item/Properties/PasswordAudit/allowed]" = "Zulässig";
+
+/* Possible value of the `Password Audit` setting. For example: 'Password Audit: Disabled' */
+"[Item/Properties/PasswordAudit/disabled]" = "Deaktiviert";
+
+/* Title of a setting: whether the item (e.g. entry) should be included in password audit */
+"[Item/Properties/PasswordAudit/title]" = "Passwort-Audit";
+
+/* Possible value of the `Search` setting. Example: 'Search: Allowed' */
+"[Item/Properties/Search/allowed]" = "Zulässig";
+
+/* Possible value of the `Search` setting, when the item should be excluded from search results. Example: 'Search: Disabled' */
+"[Item/Properties/Search/disabled]" = "Deaktiviert";
+
+/* Title of a setting: whether the item (e.g. entry) should be considered during search. Example: 'Search: Allowed' */
+"[Item/Properties/Search/title] Search" = "Suche";
+
+/* Title of a list with item (e.g. entry) properties/settings, such as searchability, auto-typing, etc */
+"[Item/Properties/title]" = "Einstellungen";
 
 /* Name of an entry/group category (visual style): default one, like in KeePass */
 "[ItemCategory] Default (KeePass)" = "Standard (KeePass)";
@@ -1174,6 +1300,9 @@
 /* List of premium benefits/advantages */
 "[Premium/Benefits/Negative/header] " = "Nicht mit dabei";
 
+/* Title of a premium feature */
+"[Premium/Benefits/PasswordAudit/title]" = "Passwörter prüfen";
+
 /* List of premium benefits/advantages */
 "[Premium/Benefits/Positive/header] " = "Profitieren Sie von";
 
@@ -1356,6 +1485,12 @@
 
 /* Title of a premium feature: ability to use multiple databases (In Title Case) */
 "[PremiumFeature/MultiDB/title] Multiple Databases" = "Mehrere Datenbanken";
+
+/* Description/call to action for the `Password Audit` premium feature. */
+"[PremiumFeature/PasswordAudit/description]" = "Finden Sie heraus, ob eines Ihrer Passwörter bei einer bekannten Datenpanne preisgegeben wurde.";
+
+/* Title of a premium feature: discover which passwords are known to be compromized */
+"[PremiumFeature/PasswordAudit/title]" = "Passwort-Audit";
 
 /* Description/advertisement for the `Preview Attachments` premium feature */
 "[PremiumFeature/Preview/description] Preview images and documents directly in the app, in the premium version." = "Vorschau von Bildern und Dokumenten direkt in der App, mit der Premium-Version.";
@@ -1585,6 +1720,9 @@
 /* Title of list view configuration screen */
 "[Settings/ListSettings/title]" = "Listeneinstellungen";
 
+/* Notification when corporate user tries to change an app setting controlled by organization's IT department. */
+"[Settings/Managed/notification]" = "Diese Einstellung wird von der Organisation verwaltet.";
+
 /* Confirmation dialog message */
 "[Settings/NetworkAccess/Confirmation/text]" = "KeePassium erlauben, Netzwerkverbindungen zu externen Diensten herzustellen?";
 
@@ -1602,6 +1740,9 @@
 
 /* Setting option: the app is permitted to use online features */
 "[Settings/NetworkAccessMode/Online/title]" = "Netzwerkzugriff erlauben";
+
+/* Action/button which resets some settings to their default state. */
+"[Settings/RestoreDefaults/action]" = "Standard wiederherstellen";
 
 /* Section title in settings */
 "[Settings/Search/title]" = "Suche";

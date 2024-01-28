@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -19,7 +19,7 @@ public class Attachment2: Attachment {
         self.id = id
         super.init(name: name, isCompressed: isCompressed, data: data)
     }
-    
+
     override public func clone() -> Attachment {
         return Attachment2(
             id: self.id,
@@ -27,15 +27,14 @@ public class Attachment2: Attachment {
             isCompressed: self.isCompressed,
             data: self.data)
     }
-    
+
     static func load(
         xml: AEXMLElement,
         database: Database2,
         streamCipher: StreamCipher
-        ) throws -> Attachment2
-    {
+    ) throws -> Attachment2 {
         assert(xml.name == Xml2.binary)
-        
+
         Diag.verbose("Loading XML: entry attachment")
         var name: String?
         var binary: Binary2?
@@ -81,7 +80,7 @@ public class Attachment2: Attachment {
             isCompressed: _binary.isCompressed,
             data: _binary.data)
     }
-    
+
     internal func toXml() -> AEXMLElement {
         Diag.verbose("Generating XML: entry attachment")
         let xmlAtt = AEXMLElement(name: Xml2.binary)

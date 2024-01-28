@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -10,18 +10,18 @@ import StoreKit
 import UIKit
 
 extension SKProduct {
-    
+
     var localizedPrice: String {
         return SKProduct.localizePrice(price: price, locale: priceLocale)
     }
-    
+
     public static func localizePrice(price: NSDecimalNumber, locale: Locale) -> String {
         let formatter = NumberFormatter()
         formatter.locale = locale
         formatter.numberStyle = .currency
         return formatter.string(from: price) ?? String(format: "%.2f", price)
     }
-    
+
     var localizedTrialDuration: String? {
         guard #available(iOS 11.2, *),
             let period = introductoryPrice?.subscriptionPeriod else { return nil }
@@ -45,7 +45,7 @@ extension SKProduct {
             assertionFailure()
             return nil 
         }
-        
+
         timeFormatter.unitsStyle = .full
         timeFormatter.maximumUnitCount = 1
         timeFormatter.formattingContext = .beginningOfSentence 

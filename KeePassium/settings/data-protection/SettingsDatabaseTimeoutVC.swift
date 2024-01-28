@@ -1,17 +1,17 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
 //  by the Free Software Foundation: https://www.gnu.org/licenses/).
 //  For commercial licensing, please contact the author.
 
-import UIKit
 import KeePassiumLib
+import UIKit
 
 final class SettingsDatabaseTimeoutCell: UITableViewCell {
     static let storyboardID = "Cell"
-    
+
     @IBOutlet weak var titleLabel: UILabel!
     @IBOutlet weak var detailLabel: UILabel!
     @IBOutlet weak var premiumBadge: UIImageView!
@@ -26,19 +26,19 @@ protocol SettingsDatabaseTimeoutViewControllerDelegate: AnyObject {
 
 final class SettingsDatabaseTimeoutVC: UITableViewController, Refreshable {
     private var premiumStatus: PremiumManager.Status = .initialGracePeriod
-    
+
     weak var delegate: SettingsDatabaseTimeoutViewControllerDelegate?
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         refresh()
     }
-    
+
     func refresh() {
         premiumStatus = PremiumManager.shared.status
         tableView.reloadData()
     }
-    
+
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
@@ -52,17 +52,16 @@ final class SettingsDatabaseTimeoutVC: UITableViewController, Refreshable {
         guard section == 0 else { return nil }
         return LString.databaseTimeoutDescription
     }
-    
+
     override func tableView(
         _ tableView: UITableView,
         cellForRowAt indexPath: IndexPath
-        ) -> UITableViewCell
-    {
+    ) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(
             withIdentifier: SettingsDatabaseTimeoutCell.storyboardID,
             for: indexPath)
             as! SettingsDatabaseTimeoutCell
-            
+
         let timeout = Settings.DatabaseLockTimeout.allValues[indexPath.row]
         cell.titleLabel?.text = timeout.fullTitle
         cell.detailLabel?.text = timeout.description
@@ -72,7 +71,7 @@ final class SettingsDatabaseTimeoutVC: UITableViewController, Refreshable {
         cell.accessibilityLabel = AccessibilityHelper.decorateAccessibilityLabel(
             premiumFeature: cell.titleLabel?.text,
             isEnabled: isAvailable)
-        
+
         if timeout == settings.premiumDatabaseLockTimeout {
             cell.accessoryType = .checkmark
         } else {

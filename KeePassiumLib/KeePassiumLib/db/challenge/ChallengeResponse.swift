@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -14,13 +14,13 @@ public enum ChallengeResponseError: LocalizedError {
     case notAvailableInAutoFill
     case keyNotConnected
     case keyNotConfigured
-    
+
     case cancelled
-    
+
     case communicationError(message: String)
-    
-    
+
     public var errorDescription: String? {
+        // swiftlint:disable line_length
         switch self {
         case .notSupportedByDeviceOrSystem(let interface):
             return String.localizedStringWithFormat(
@@ -63,6 +63,7 @@ public enum ChallengeResponseError: LocalizedError {
         case .communicationError(let message):
             return message
         }
+        // swiftlint:enable line_length
     }
 }
 

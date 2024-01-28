@@ -1,5 +1,91 @@
 #CHANGELOG
 
+## [1.48.142] - 2023-12-06
+
+### Added
+
+- Drag and drop attachments to other apps
+- Possibility to disable/allow search, password audit and AutoFill for specific groups and entries
+
+### Improved
+
+- Tapping on password quality icon will show its meaning [thanks, everyone]
+- Entry viewer shows entry's internal UUID that can be used for field references.
+- Updated translations [thanks, everyone]
+
+### Fixed
+
+- Intune: support for conditional access grant "require app protection policy" [thanks, R.B.]
+- Intune: consider invalid AppConfig values as unmanaged
+
+
+## [1.47.141] - 2023-11-24
+
+### Added
+
+- Possibility to change database encryption settings
+- Support for AppConfig managed settings in corporate deployments
+
+### Improved
+
+- Quick AutoFill can again copy TOTP to clipboard instead of simply showing it (closes #242) [thanks, David]
+
+### Fixed
+
+- "Storage does not respond" error when saving (fixes #327) [thanks, everyone]
+- Sometimes the database did not lock up properly (fixes #322) [thanks, vit9696]
+- When unlocking the app, require pressing the Unlock button when number of failed attempts matters [thanks, J.L.]
+- OneDrive: better detection of "invalid_grant" error
+- Favicon was not always refreshed after download (fixes #323) [thanks, everyone]
+
+
+## [1.46.140] - 2023-10-24
+
+### Added
+
+- Drag-and-drop attachments to entry viewer
+
+### Improved
+
+- Added SwiftLint to enforce consistent code style
+
+### Fixed
+
+- Ask network permission before favicon download (fixes #321) [thanks, vit9696]
+- DB timeout did not lock both panes on macOS (regression in 1.46.139; closes #322) [thanks, vit9696]
+
+
+## [1.46.139] - 2023-10-05
+
+### Added 
+
+- Password audit powered by 'Have I Been Pwned' service (requires premium) (closes #187)
+- Password quality indicator (closes #170)
+- Favicon downloader (closes #164)
+- Customizable entry font [thanks, everyone]
+- A button to reload the currently opened DB (step towards #226)
+- Intune: Business licensing mechanism
+
+### Improved
+
+- You can disable Quick AutoFill for specific databases (#289) [thanks, everyone]
+- App passcode is tested while being entered, no need to tap the "Unlock" button [thanks, Hinrich]
+- macOS: copied items are marked as concealed for clipboard managers (closes #315)  [thanks, piercefaulkner]
+- macOS: lock app/DB when locking the screen (closes #231) [thanks, Rodrigo]
+- UI improvements in DB viewer and entry editor
+- Updated translations [thanks, everyone]
+
+### Changed
+
+- Intune: update MSAL version to 1.2.3
+- Intune: Extended the provisional license to 2023-12-31
+
+### Fixed
+
+- "No such file" error when saving to Dropbox (fixes #304) [thanks, everyone]
+- Better error message when YubiKey is not completely configured
+
+
 ## [1.45.138] - 2023-07-13
 
 ### Changed

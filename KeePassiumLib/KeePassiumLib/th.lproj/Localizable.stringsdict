@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>[Generic/Count/Bits]</key>
+	<dict>
+		<key>GenericCountBits</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>%d บิต</string>
+		</dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@GenericCountBits@</string>
+	</dict>
+	<key>[Generic/Count/EntriesSelected]</key>
+	<dict>
+		<key>GenericCountEntriesSelected</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>%d รายการที่เลือกไว้</string>
+		</dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@GenericCountEntriesSelected@</string>
+	</dict>
+	<key>[Generic/Count/Threads]</key>
+	<dict>
+		<key>GenericCountThreads</key>
+		<dict>
+			<key>NSStringFormatSpecTypeKey</key>
+			<string>NSStringPluralRuleType</string>
+			<key>NSStringFormatValueTypeKey</key>
+			<string>d</string>
+			<key>other</key>
+			<string>%d threads</string>
+		</dict>
+		<key>NSStringLocalizedFormatKey</key>
+		<string>%#@GenericCountThreads@</string>
+	</dict>
+</dict>
+</plist>

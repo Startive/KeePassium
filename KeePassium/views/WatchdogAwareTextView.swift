@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -9,11 +9,11 @@
 import UIKit
 
 class WatchdogAwareTextView: UITextView {
-    
+
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
-    
+
     override func awakeFromNib() {
         super.awakeFromNib()
         NotificationCenter.default.addObserver(
@@ -22,12 +22,12 @@ class WatchdogAwareTextView: UITextView {
             name: UITextView.textDidChangeNotification,
             object: self)
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(
             self, name: UITextView.textDidChangeNotification, object: self)
     }
-    
+
     @objc
     func onTextChanged() {
         Watchdog.shared.restart()

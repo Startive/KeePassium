@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2022 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -15,12 +15,12 @@ protocol PasswordGeneratorRequirementsConvertible {
 public struct PasswordGeneratorRequirements {
     let length: Int
     let sets: [ConditionalStringSet]
-    
+
     let maxConsecutive: Int?
-    
+
     let elementPreprocessor: PasswordGenerator.ElementPreprocessingFunction?
     let elementMerger: PasswordGenerator.ElementMergingFunction?
-    
+
     public init(
         length: Int,
         sets: [ConditionalStringSet],
@@ -34,14 +34,14 @@ public struct PasswordGeneratorRequirements {
         self.elementPreprocessor = elementPreprocessor
         self.elementMerger = elementMerger
     }
-    
+
     func getExcludedSets() -> [StringSet] {
         let result = sets
             .filter { $0.condition == .excluded }
             .map { $0.set }
         return result
     }
-    
+
     func getExcludedElements() -> Set<String> {
         let excludedSets = getExcludedSets()
         var result = StringSet()
@@ -50,7 +50,7 @@ public struct PasswordGeneratorRequirements {
         }
         return result
     }
-    
+
     func getRequiredSetsFiltered() throws -> [StringSet] {
         let excludedElements = getExcludedElements()
         let requiredSets = sets.filter { $0.condition == .required }
@@ -62,7 +62,7 @@ public struct PasswordGeneratorRequirements {
         }
         return result
     }
-    
+
     func getAllowedElementsFiltered() throws -> StringSet {
         let excludedElements = getExcludedElements()
         let allowedSets = sets

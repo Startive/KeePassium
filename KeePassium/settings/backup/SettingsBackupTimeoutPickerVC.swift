@@ -1,13 +1,13 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
 //  by the Free Software Foundation: https://www.gnu.org/licenses/).
 //  For commercial licensing, please contact the author.
 
-import UIKit
 import KeePassiumLib
+import UIKit
 
 protocol SettingsBackupTimeoutPickerDelegate: AnyObject {
     func didFinish(_ viewController: SettingsBackupTimeoutPickerVC)
@@ -16,17 +16,17 @@ protocol SettingsBackupTimeoutPickerDelegate: AnyObject {
 class SettingsBackupTimeoutPickerVC: UITableViewController {
     private let cellID = "cell"
     private let items = Settings.BackupKeepingDuration.allValues
-    
+
     public weak var delegate: SettingsBackupTimeoutPickerDelegate?
-    
-    public static func create(delegate: SettingsBackupTimeoutPickerDelegate?=nil)
-        -> SettingsBackupTimeoutPickerVC
-    {
+
+    public static func create(
+        delegate: SettingsBackupTimeoutPickerDelegate? = nil
+    ) -> SettingsBackupTimeoutPickerVC {
         let vc = SettingsBackupTimeoutPickerVC.instantiateFromStoryboard()
         vc.delegate = delegate
         return vc
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         refresh()
@@ -35,7 +35,7 @@ class SettingsBackupTimeoutPickerVC: UITableViewController {
     func refresh() {
         tableView.reloadData()
     }
-    
+
 
     override func numberOfSections(in tableView: UITableView) -> Int {
         return 1
@@ -60,6 +60,10 @@ class SettingsBackupTimeoutPickerVC: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         Settings.current.backupKeepingDuration = items[indexPath.row]
         refresh()
-        delegate?.didFinish(self)
+        if Settings.current.isManaged(key: .backupKeepingDuration) {
+            showManagedSettingNotification()
+        } else {
+            delegate?.didFinish(self)
+        }
     }
 }

@@ -1,11 +1,10 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
 //  by the Free Software Foundation: https://www.gnu.org/licenses/).
 //  For commercial licensing, please contact the author.
-
 
 public final class DatabaseLoadingWarnings {
     public enum IssueType {
@@ -16,7 +15,7 @@ public final class DatabaseLoadingWarnings {
         case databaseFileIsInTrash(fileName: String)
         case temporaryBackupDatabase
         case lesserTargetFormat
-        
+
         public var priority: Int {
             switch self {
             case .namelessAttachments,
@@ -32,7 +31,7 @@ public final class DatabaseLoadingWarnings {
                 return 40
             }
         }
-        
+
         fileprivate var isGeneratorBased: Bool {
             switch self {
             case .unusedAttachments,
@@ -46,7 +45,7 @@ public final class DatabaseLoadingWarnings {
                 return false
             }
         }
-        
+
         public var helpURL: URL? {
             switch self {
             case .databaseFileIsInTrash:
@@ -57,7 +56,7 @@ public final class DatabaseLoadingWarnings {
                 return nil
             }
         }
-        
+
         internal var debugName: String {
             switch self {
             case .unusedAttachments:
@@ -76,7 +75,7 @@ public final class DatabaseLoadingWarnings {
                 return "lesserTargetFormat"
             }
         }
-        
+
         internal func getDescription(with databaseGenerator: String) -> String {
             switch self {
             case .unusedAttachments:
@@ -115,16 +114,16 @@ public final class DatabaseLoadingWarnings {
             }
         }
     }
-    
+
     public internal(set) var databaseGenerator: String?
 
     public private(set) var issues = [IssueType]()
     public var isEmpty: Bool { return issues.isEmpty }
-    
+
     public var isGeneratorImportant: Bool {
         return issues.contains { $0.isGeneratorBased }
     }
-    
+
     internal init() {
         databaseGenerator = nil
     }
@@ -132,15 +131,15 @@ public final class DatabaseLoadingWarnings {
     public func addIssue(_ issue: IssueType) {
         issues.append(issue)
     }
-    
+
     public func getDescription(for issue: IssueType) -> String {
         return issue.getDescription(with: databaseGenerator ?? "")
     }
-    
+
     public func getRedactedDescription() -> String {
-        return issues.map({ $0.debugName}).joined(separator: ", ")
+        return issues.map({ $0.debugName }).joined(separator: ", ")
     }
-    
+
     public func getHelpURL() -> URL? {
         let relevantHelpURLs = issues.compactMap { $0.helpURL }
         if relevantHelpURLs.count == 1 {

@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -24,21 +24,21 @@ class LongPressAwareNavigationController: UINavigationController {
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         fatalError("Not implemented")
     }
-    
+
     @objc func didLongPressNavigationBar(_ gestureRecognizer: UILongPressGestureRecognizer) {
         guard let delegate = self.delegate as? LongPressAwareNavigationControllerDelegate,
             gestureRecognizer.state == .began else { return }
         let touchPoint = gestureRecognizer.location(in: navigationBar)
-        
+
         let leftSideWidth = navigationBar.bounds.width / 4
         let leftSideRect = navigationBar.bounds
             .divided(atDistance: leftSideWidth, from: .minXEdge)
             .slice
-        
+
         if leftSideRect.contains(touchPoint) {
             delegate.didLongPressLeftSide(in: self)
         }

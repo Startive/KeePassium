@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2022 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -13,7 +13,7 @@ public enum InclusionCondition: Int8, Codable, CustomStringConvertible {
     case allowed  = -1
     case excluded = 0
     case required = 1
-    
+
     public var description: String {
         switch self {
         case .inactive:
@@ -29,6 +29,7 @@ public enum InclusionCondition: Int8, Codable, CustomStringConvertible {
 }
 
 extension LString {
+    // swiftlint:disable line_length
     enum InclusionCondition {
         public static let inactive = NSLocalizedString(
             "[PasswordGenerator/InclusionCondition/inactive]",
@@ -51,4 +52,5 @@ extension LString {
             value: "Required",
             comment: "Inclusion criterion for a password generator. For example: `Special Symbols: Required`")
     }
+    // swiftlint:enable line_length
 }

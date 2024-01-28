@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2022 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -14,7 +14,7 @@ public struct Timeout {
         let durationInMicroseconds = Int(duration * 1.0e6)
         return startTime.advanced(by: .microseconds(durationInMicroseconds))
     }
-    
+
     public var remainingTimeInterval: TimeInterval {
         let remaining = DispatchTime.now().distance(to: deadline)
         switch remaining {
@@ -30,7 +30,7 @@ public struct Timeout {
             return .greatestFiniteMagnitude
         }
     }
-    
+
     public init(startTime: DispatchTime = .now(), duration: TimeInterval) {
         self.duration = duration
         self.startTime = startTime

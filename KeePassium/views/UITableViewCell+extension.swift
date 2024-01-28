@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -9,7 +9,7 @@
 import UIKit
 
 extension UITableViewCell {
-    
+
     func setEnabled(_ isEnabled: Bool) {
         let alpha: CGFloat = isEnabled ? 1.0 : 0.43
         contentView.alpha = alpha

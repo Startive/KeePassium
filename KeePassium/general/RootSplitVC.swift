@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -9,15 +9,15 @@
 import KeePassiumLib
 
 class RootSplitVC: UISplitViewController {
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         self.preferredDisplayMode = .oneBesideSecondary
     }
-    
+
     public func setDetailRouter(_ router: NavigationRouter) {
         assert(viewControllers.count > 0) 
-        
+
         if viewControllers.count == 1 {
             let vc = viewControllers.first! 
             guard let primaryNavVC = vc as? UINavigationController else {

@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2022 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -10,10 +10,9 @@ import UIKit
 
 final public class LocalNotifications: NSObject {
     private static let totpCopiedNotificationID = "totp-copied"
-    
-    public static func requestPermission(_ success: @escaping ()->Void) {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert]) {
-            (granted, error) in
+
+    public static func requestPermission(_ success: @escaping () -> Void) {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert]) { granted, error in
             if granted {
                 Diag.debug("Local notifications allowed")
                 success()
@@ -22,20 +21,20 @@ final public class LocalNotifications: NSObject {
             }
         }
     }
-    
+
     public static func showTOTPNotification(title: String, body: String) {
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1e-6, repeats: false)
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
         content.sound = nil
-        
+
         let request = UNNotificationRequest(
             identifier: totpCopiedNotificationID,
             content: content,
             trigger: trigger
         )
-        
+
         let center = UNUserNotificationCenter.current()
         center.removeAllDeliveredNotifications()
         center.removeAllPendingNotificationRequests()
@@ -61,4 +60,3 @@ extension LocalNotifications: UNUserNotificationCenterDelegate {
         completionHandler([.banner])
     }
 }
-

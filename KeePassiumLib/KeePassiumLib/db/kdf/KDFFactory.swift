@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -12,15 +12,19 @@ protocol KeyDerivationFunction {
     var uuid: UUID { get }
     var name: String { get }
     var defaultParams: KDFParams { get }
-    
+
     func initProgress() -> ProgressEx
 
+    func parseParams(_ kdfParams: KDFParams, to settings: inout EncryptionSettings)
+
+    func apply(_ settings: EncryptionSettings, to kdfParams: inout KDFParams)
+
     init()
-    
+
     func transform(key: SecureBytes, params: KDFParams) throws -> SecureBytes
-    
+
     func getChallenge(_ params: KDFParams) throws -> ByteArray
-    
+
     func randomize(params: inout KDFParams) throws
 }
 
@@ -31,7 +35,7 @@ final class KDFFactory {
 
     private init() {
     }
-    
+
     public static func createFor(uuid: UUID) -> KeyDerivationFunction? {
         switch uuid {
         case argon2dKDF.uuid:

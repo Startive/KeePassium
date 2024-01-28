@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2022 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -26,7 +26,7 @@ extension LString {
         value: "Authentication failed",
         comment: "Error message: user credentials rejected by the server"
     )
-    
+
     public static let connectionTypeWebDAV = "WebDAV" 
     public static let connectionTypeOneDrive = "OneDrive" 
     public static let connectionTypeSharePoint = "OneDrive" 
@@ -41,13 +41,13 @@ extension LString {
         bundle: Bundle.framework,
         value: "Connection",
         comment: "Network connection. For example `Connection: WebDAV` or `Connection: MyCloud`.")
-    
+
     public static let titleAllowUntrustedCertificate = NSLocalizedString(
         "[RemoteConnection/AllowUntrusted/title]",
         bundle: Bundle.framework,
         value: "Allow Untrusted Certificate",
         comment: "Network security setting")
-    
+
     public static let titleFileURL = NSLocalizedString(
         "[RemoteConnection/FileURL]",
         bundle: Bundle.framework,
@@ -58,7 +58,7 @@ extension LString {
         bundle: Bundle.framework,
         value: "Credentials",
         comment: "Title of a section: username, password, etc")
-    
+
     public static let titleFolderIsEmpty = NSLocalizedString(
         "[General/FileList/Empty/title]",
         bundle: Bundle.framework,
@@ -86,7 +86,7 @@ extension LString {
         bundle: Bundle.framework,
         value: "OneDrive needs you to sign in again.",
         comment: "Error description: the user should manually sign in to their OneDrive account")
-    
+
     public static let titleOneDriveFolderFiles = NSLocalizedString(
         "[RemoteConnection/OneDrive/Folder/files]",
         bundle: Bundle.framework,

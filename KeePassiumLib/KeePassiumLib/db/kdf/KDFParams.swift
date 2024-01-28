@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -14,15 +14,11 @@ final class KDFParams: VarDict {
         let uuidBytes = getValue(key: KDFParams.uuidParam)?.asByteArray()
         return UUID(data: uuidBytes) ?? UUID.ZERO
     }
-    
-    override func erase() {
-        super.erase()
-    }
-    
+
     override func read(data: ByteArray) -> Bool {
         Diag.debug("Parsing KDF params")
         guard super.read(data: data) else { return false }
-        
+
         guard let value = getValue(key: KDFParams.uuidParam) else {
             Diag.warning("KDF UUID is missing")
             return false

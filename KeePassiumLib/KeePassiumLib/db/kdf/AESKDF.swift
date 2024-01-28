@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -9,35 +9,52 @@
 import Foundation
 
 class AESKDF: KeyDerivationFunction {
-    
-    private static let _uuid = UUID(uuid: (0xC9,0xD9,0xF3,0x9A,0x62,0x8A,0x44,0x60,0xBF,0x74,0x0D,0x08,0xC1,0x8A,0x4F,0xEA))
+
+    private static let _uuid = UUID(uuid: (
+        0xC9, 0xD9, 0xF3, 0x9A, 0x62, 0x8A, 0x44, 0x60,
+        0xBF, 0x74, 0x0D, 0x08, 0xC1, 0x8A, 0x4F, 0xEA))
     public static let transformSeedParam = "S"
     public static let transformRoundsParam = "R"
-    
+
     public var uuid: UUID { return AESKDF._uuid }
     public var name: String { return "AES KDF" }
-    
+
     private let subkeySize = 16
     private var progress = ProgressEx()
-    
+
+    fileprivate let defaultIterations: UInt64 = 100_000
 
     public var defaultParams: KDFParams {
         let params = KDFParams()
         params.setValue(key: KDFParams.uuidParam, value: VarDict.TypedValue(value: uuid.data))
-        
+
         let transformSeed = ByteArray(count: SHA256_SIZE) 
         params.setValue(
             key: AESKDF.transformSeedParam,
             value: VarDict.TypedValue(value: transformSeed))
         params.setValue(
             key: AESKDF.transformRoundsParam,
-            value: VarDict.TypedValue(value: UInt64(100_000)))
+            value: VarDict.TypedValue(value: defaultIterations))
         return params
     }
-    
+
     required init() {
     }
-    
+
+    func parseParams(_ kdfParams: KDFParams, to settings: inout EncryptionSettings) {
+        settings.iterations = kdfParams.getValue(key: AESKDF.transformRoundsParam)?.asUInt64()
+        settings.memory = nil
+        settings.parallelism = nil
+    }
+
+    func apply(_ settings: EncryptionSettings, to kdfParams: inout KDFParams) {
+        assert(settings.iterations != nil, "Iterations parameter must be defined")
+        let iterations = settings.iterations ?? defaultIterations
+        kdfParams.setValue(
+            key: AESKDF.transformRoundsParam,
+            value: VarDict.TypedValue(value: iterations))
+    }
+
     func initProgress() -> ProgressEx {
         progress = ProgressEx()
         progress.localizedDescription = NSLocalizedString(
@@ -47,22 +64,21 @@ class AESKDF: KeyDerivationFunction {
             comment: "Status message: processing of the master key is in progress")
         return progress
     }
-    
-    
+
     func getChallenge(_ params: KDFParams) throws -> ByteArray {
         guard let transformSeed = params.getValue(key: AESKDF.transformSeedParam)?.asByteArray() else {
             throw CryptoError.invalidKDFParam(kdfName: name, paramName: AESKDF.transformSeedParam)
         }
         return transformSeed
     }
-    
+
     func randomize(params: inout KDFParams) throws {
         let transformSeed = try CryptoManager.getRandomBytes(count: SHA256_SIZE)
         params.setValue(
             key: AESKDF.transformSeedParam,
             value: VarDict.TypedValue(value: transformSeed))
     }
-    
+
     func transform(key compositeKey: SecureBytes, params: KDFParams) throws -> SecureBytes {
         guard let transformSeed = params.getValue(key: AESKDF.transformSeedParam)?.asByteArray() else {
             throw CryptoError.invalidKDFParam(kdfName: name, paramName: AESKDF.transformSeedParam)
@@ -72,15 +88,16 @@ class AESKDF: KeyDerivationFunction {
         }
         assert(transformSeed.count == Int(kCCKeySizeAES256))
         assert(compositeKey.count == SHA256_SIZE)
-        
+
         progress.totalUnitCount = Int64(transformRounds)
-        
+
         var transformedKey = SecureBytes.empty()
-        let status = transformSeed.withBytes { (trSeedBytes)  in
+        let status = transformSeed.withBytes { trSeedBytes  in
             return compositeKey.withDecryptedMutableBytes { (trKeyBytes: inout [UInt8]) -> Int32 in
-                
-                
+
+
                 let progressPtr = UnsafeRawPointer(Unmanaged.passUnretained(progress).toOpaque())
+                // swiftlint:disable opening_brace closure_parameter_position
                 let status = aeskdf_rounds(
                     trSeedBytes,
                     &trKeyBytes,
@@ -98,6 +115,7 @@ class AESKDF: KeyDerivationFunction {
                         return isShouldStop
                     },
                     progressPtr)
+                // swiftlint:enable opening_brace closure_parameter_position
                 let transformedKeyBytes = CryptoManager.sha256(of: trKeyBytes)
                 transformedKey = SecureBytes.from(transformedKeyBytes)
                 return status
@@ -107,7 +125,7 @@ class AESKDF: KeyDerivationFunction {
         if progress.isCancelled {
             throw ProgressInterruption.cancelled(reason: progress.cancellationReason)
         }
-        
+
         guard status == kCCSuccess else {
             Diag.error("doRounds() crypto error [code: \(status)]")
             throw CryptoError.aesEncryptError(code: Int(status))

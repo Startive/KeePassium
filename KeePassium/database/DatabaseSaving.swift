@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -10,12 +10,16 @@ import KeePassiumLib
 
 protocol DatabaseSaving: DatabaseSaverDelegate {
     var fileExportHelper: FileExportHelper? { get set }
-    
+
     var databaseSaver: DatabaseSaver? { get set }
     var savingProgressHost: ProgressViewHost? { get }
-    
-    func saveDatabase(_ databaseFile: DatabaseFile, timeoutDuration: TimeInterval)
-    
+    var saveSuccessHandler: (() -> Void)? { get set }
+
+    func saveDatabase(
+        _ databaseFile: DatabaseFile,
+        timeoutDuration: TimeInterval,
+        onSuccess: (() -> Void)?)
+
     func willStartSaving(databaseFile: DatabaseFile)
     func canCancelSaving(databaseFile: DatabaseFile) -> Bool
     func didCancelSaving(databaseFile: DatabaseFile)
@@ -24,23 +28,25 @@ protocol DatabaseSaving: DatabaseSaverDelegate {
 
     func didRelocate(databaseFile: DatabaseFile, to newURL: URL)
 
-    func getDiagnosticsHandler() -> (()->Void)?
+    func getDiagnosticsHandler() -> (() -> Void)?
     func getDatabaseSavingErrorParent() -> UIViewController
 }
 
 extension DatabaseSaving {
     func saveDatabase(
         _ databaseFile: DatabaseFile,
-        timeoutDuration: TimeInterval = FileDataProvider.defaultTimeoutDuration
+        timeoutDuration: TimeInterval = FileDataProvider.defaultTimeoutDuration,
+        onSuccess: (() -> Void)? = nil
     ) {
         assert(databaseSaver == nil)
+        saveSuccessHandler = onSuccess
         databaseSaver = DatabaseSaver(
             databaseFile: databaseFile,
             timeoutDuration: timeoutDuration,
             delegate: self)
         databaseSaver!.save()
     }
-    
+
     fileprivate func saveToAnotherFile(databaseFile: DatabaseFile) {
         assert(databaseFile.data.count > 0, "Database content should be ready")
         assert(fileExportHelper == nil)
@@ -61,7 +67,7 @@ extension DatabaseSaving {
         }
         fileExportHelper!.saveAs(presenter: getDatabaseSavingErrorParent())
     }
-    
+
     func databaseSaver(_ databaseSaver: DatabaseSaver, willSave databaseFile: DatabaseFile) {
         willStartSaving(databaseFile: databaseFile)
         savingProgressHost?.showProgressView(
@@ -70,7 +76,7 @@ extension DatabaseSaving {
             animated: true
         )
     }
-    
+
     func databaseSaver(
         _ databaseSaver: DatabaseSaver,
         didChangeProgress progress: ProgressEx,
@@ -78,7 +84,7 @@ extension DatabaseSaving {
     ) {
         savingProgressHost?.updateProgressView(with: progress)
     }
-    
+
     func databaseSaver(
         _ databaseSaver: DatabaseSaver,
         didCancelSaving databaseFile: DatabaseFile
@@ -87,7 +93,7 @@ extension DatabaseSaving {
         savingProgressHost?.hideProgressView(animated: true)
         didCancelSaving(databaseFile: databaseFile)
     }
-    
+
     func databaseSaverResolveConflict(
         _ databaseSaver: DatabaseSaver,
         local: DatabaseFile,
@@ -101,21 +107,19 @@ extension DatabaseSaving {
             guard let self = self else { return }
             switch strategy {
             case .cancelSaving:
-                completion(nil, false)
-                self.databaseSaver(databaseSaver, didCancelSaving: local)
+                completion(.cancel)
             case .overwriteRemote:
-                completion(local.data, true)
+                completion(.overwrite(local.data))
             case .merge:
                 assertionFailure("Not implemented")
-                completion(nil, false)
-                self.databaseSaver = nil
+                completion(.cancel)
             case .saveAs:
-                completion(local.data, false)
-                self.databaseSaver = nil
+                completion(.considerExported)
+                self.databaseSaver = nil 
                 self.saveToAnotherFile(databaseFile: local) 
             }
         }
-        
+
         let viewController = getDatabaseSavingErrorParent()
         viewController.present(alert, animated: true, completion: nil)
     }
@@ -130,8 +134,9 @@ extension DatabaseSaving {
             dbSettings.maybeSetMasterKey(of: databaseFile.database)
         }
         didSave(databaseFile: databaseFile)
+        saveSuccessHandler?()
     }
-    
+
     func databaseSaver(
         _ databaseSaver: DatabaseSaver,
         didFailSaving databaseFile: DatabaseFile,
@@ -139,7 +144,7 @@ extension DatabaseSaving {
     ) {
         self.databaseSaver = nil
         savingProgressHost?.hideProgressView(animated: true)
-        
+
         showDatabaseSavingError(
             error,
             fileName: databaseFile.visibleFileName,
@@ -156,7 +161,7 @@ extension DatabaseSaving {
     func didCancelSaving(databaseFile: DatabaseFile) { }
     func didSave(databaseFile: DatabaseFile) { }
     func didFailSaving(databaseFile: DatabaseFile) { }
-    func getDiagnosticsHandler() -> (()->Void)? {
+    func getDiagnosticsHandler() -> (() -> Void)? {
         return nil
     }
 }
@@ -166,34 +171,32 @@ extension DatabaseSaving {
         guard let localizedError = error as? LocalizedError else {
             return nil
         }
-        
+
         let parts = [localizedError.failureReason, localizedError.recoverySuggestion]
-        return parts.compactMap{ $0 }.joined(separator: "\n\n")
+        return parts.compactMap { $0 }.joined(separator: "\n\n")
     }
-    
+
     func showDatabaseSavingError(
         _ error: Error,
         fileName: String,
         databaseFile: DatabaseFile,
-        diagnosticsHandler: (()->Void)?,
+        diagnosticsHandler: (() -> Void)?,
         parent viewController: UIViewController
     ) {
         StoreReviewSuggester.registerEvent(.trouble)
-        let errorAlert = UIAlertController.init(
+        let errorAlert = UIAlertController(
             title: error.localizedDescription,
             message: getErrorDetails(error),
             preferredStyle: .alert
         )
         if let diagnosticsHandler = diagnosticsHandler {
-            errorAlert.addAction(title: LString.actionShowDetails, style: .default) {
-                [weak self] _ in
+            errorAlert.addAction(title: LString.actionShowDetails, style: .default) { [weak self] _ in
                 self?.didFailSaving(databaseFile: databaseFile)
                 diagnosticsHandler()
             }
         }
         if databaseFile.data.count > 0 {
-            errorAlert.addAction(title: LString.actionFileSaveAs, style: .default) {
-                [weak self] _ in
+            errorAlert.addAction(title: LString.actionFileSaveAs, style: .default) { [weak self] _ in
                 self?.saveToAnotherFile(databaseFile: databaseFile) 
             }
         }

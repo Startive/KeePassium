@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -9,7 +9,7 @@
 import KeePassiumLib
 
 extension UIAlertController {
-    
+
     static func make(
         title: String?,
         message: String?,
@@ -19,15 +19,19 @@ extension UIAlertController {
         alert.addAction(title: dismissButtonTitle, style: .cancel, handler: nil)
         return alert
     }
-    
+
     @discardableResult
     func addAction(
         title: String?,
         style: UIAlertAction.Style,
+        preferred: Bool = false,
         handler: ((UIAlertAction) -> Void)?
     ) -> UIAlertController {
         let action = UIAlertAction(title: title, style: style, handler: handler)
         self.addAction(action)
+        if preferred {
+            self.preferredAction = action
+        }
         return self
     }
 }

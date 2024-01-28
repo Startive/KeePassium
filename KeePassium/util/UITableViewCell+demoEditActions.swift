@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -27,13 +27,10 @@ extension UITableViewCell {
         fakeActionView.widthAnchor.constraint(equalToConstant: maxShift).isActive = true
         fakeActionView.isOpaque = true
         fakeActionView.layoutIfNeeded()
-        
-        animateFrameShift(cellView: cellView, by: -maxShift) {
-            [weak self] in
-            self?.animateFrameShift(cellView: cellView, by: maxShift) {
-                [weak self] in
-                self?.animateFrameShift(cellView: cellView, by: -0.3 * maxShift) {
-                    [weak self] in
+
+        animateFrameShift(cellView: cellView, by: -maxShift) { [weak self] in
+            self?.animateFrameShift(cellView: cellView, by: maxShift) { [weak self] in
+                self?.animateFrameShift(cellView: cellView, by: -0.3 * maxShift) { [weak self] in
                     self?.animateFrameShift(cellView: cellView, by: 0.3 * maxShift) {
                         fakeActionView.removeFromSuperview()
                         cellView.clipsToBounds = wasClippingToBounds
@@ -42,13 +39,12 @@ extension UITableViewCell {
             }
         }
     }
-    
+
     private func animateFrameShift(
         cellView: UIView,
         by dx: CGFloat,
-        completion: @escaping ()->Void)
-    {
-        
+        completion: @escaping () -> Void
+    ) {
         let shiftedFrame = cellView.frame.offsetBy(dx: dx, dy: 0.0)
         let options: UIView.AnimationOptions = (dx > 0) ? [.curveEaseIn] : [.curveEaseOut]
         UIView.animate(
@@ -58,6 +54,6 @@ extension UITableViewCell {
             animations: {
                 cellView.frame = shiftedFrame
             },
-            completion: { (finished) in completion() })
+            completion: { _ in completion() })
     }
 }

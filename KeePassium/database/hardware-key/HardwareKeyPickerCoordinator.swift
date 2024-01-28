@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -16,24 +16,24 @@ final class HardwareKeyPickerCoordinator: Coordinator, Refreshable {
     var childCoordinators = [Coordinator]()
     var dismissHandler: CoordinatorDismissHandler?
     weak var delegate: HardwareKeyPickerCoordinatorDelegate?
-    
+
     private var selectedKey: YubiKey?
-    
+
     private let router: NavigationRouter
     private let hardwareKeyPickerVC: HardwareKeyPicker
-    
+
     init(router: NavigationRouter) {
         self.router = router
         hardwareKeyPickerVC = HardwareKeyPicker.instantiateFromStoryboard()
         hardwareKeyPickerVC.delegate = self
         hardwareKeyPickerVC.selectedKey = selectedKey
     }
-    
+
     deinit {
         assert(childCoordinators.isEmpty)
         removeAllChildCoordinators()
     }
-    
+
     func start() {
         setupCancelButton(in: hardwareKeyPickerVC)
         router.push(hardwareKeyPickerVC, animated: true, onPop: { [weak self] in
@@ -45,45 +45,45 @@ final class HardwareKeyPickerCoordinator: Coordinator, Refreshable {
         startObservingPremiumStatus(#selector(premiumStatusDidChange))
         #endif
     }
-    
+
     private func setupCancelButton(in viewController: UIViewController) {
         guard router.navigationController.topViewController == nil else {
             return
         }
-        
+
         let cancelButton = UIBarButtonItem(
             barButtonSystemItem: .cancel,
             target: self,
             action: #selector(didPressDismiss))
         viewController.navigationItem.leftBarButtonItem = cancelButton
     }
-    
+
     @objc
     private func didPressDismiss(_ sender: UIBarButtonItem) {
         dismiss(animated: true)
     }
-    
+
     @objc
     private func premiumStatusDidChange() {
         refresh()
     }
-    
+
     func refresh() {
         hardwareKeyPickerVC.refresh()
     }
-    
+
     private func dismiss(animated: Bool) {
         router.pop(viewController: hardwareKeyPickerVC, animated: animated) 
     }
 }
 
 extension HardwareKeyPickerCoordinator {
-    
+
     public func setSelectedKey(_ yubiKey: YubiKey?) {
         self.selectedKey = yubiKey
         hardwareKeyPickerVC.selectedKey = yubiKey
     }
-    
+
     #if MAIN_APP
     private func maybeSelectKey(_ yubiKey: YubiKey?) {
         if PremiumManager.shared.isAvailable(feature: .canUseHardwareKeys) {
@@ -114,7 +114,7 @@ extension HardwareKeyPickerCoordinator: HardwareKeyPickerDelegate {
         maybeSelectKey(yubiKey)
     }
     #endif
-        
+
     #if AUTOFILL_EXT
     private func didSelectKeyInAutoFill(_ yubiKey: YubiKey?, in picker: HardwareKeyPicker) {
         guard yubiKey == nil else {

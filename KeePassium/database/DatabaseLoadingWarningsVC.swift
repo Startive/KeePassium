@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -9,7 +9,7 @@
 import KeePassiumLib
 
 final class DatabaseLoadingWarningsVC: UIAlertController {
-    
+
     static func present(
         _ warnings: DatabaseLoadingWarnings,
         in viewController: UIViewController,
@@ -32,7 +32,7 @@ final class DatabaseLoadingWarningsVC: UIAlertController {
                 onLockDatabase()
             }
         )
-        
+
         if let helpURL = warnings.getHelpURL() {
             alert.addAction(
                 title: LString.actionLearnMore,
@@ -51,7 +51,7 @@ final class DatabaseLoadingWarningsVC: UIAlertController {
             alert.addAction(
                 title: LString.actionContactUs,
                 style: .default,
-                handler: { [weak viewController] (action) in
+                handler: { [weak viewController] _ in
                     guard let presentingVC = viewController else { return }
                     let popoverAnchor = PopoverAnchor(
                         sourceView: presentingVC.view,
@@ -60,7 +60,7 @@ final class DatabaseLoadingWarningsVC: UIAlertController {
                         subject: .problem,
                         parent: presentingVC,
                         popoverAnchor: popoverAnchor,
-                        completion: { (isSent) in
+                        completion: { _ in
                             alert.dismiss(animated: false, completion: nil)
                         }
                     )
@@ -69,7 +69,7 @@ final class DatabaseLoadingWarningsVC: UIAlertController {
         }
         alert.addAction(closeDatabaseAction)
         viewController.present(alert, animated: true, completion: nil)
-        
+
         Diag.warning("DB loading warnings shown [issues: \(warnings.getRedactedDescription())]")
     }
 }

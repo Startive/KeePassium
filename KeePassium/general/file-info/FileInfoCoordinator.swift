@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2022 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -15,17 +15,17 @@ protocol FileInfoCoordinatorDelegate: AnyObject {
 final class FileInfoCoordinator: Coordinator {
     var childCoordinators = [Coordinator]()
     var dismissHandler: CoordinatorDismissHandler?
-    
+
     weak var delegate: FileInfoCoordinatorDelegate?
-    
+
     private let router: NavigationRouter
     private let fileRef: URLReference
     private let fileType: FileType
     private let canExport: Bool
     private let fileInfoVC: FileInfoVC
-    
+
     private var fileInfo: FileInfo?
-    
+
     init(fileRef: URLReference, fileType: FileType, allowExport: Bool, router: NavigationRouter) {
         self.router = router
         self.fileRef = fileRef
@@ -37,12 +37,12 @@ final class FileInfoCoordinator: Coordinator {
         fileInfoVC.fileType = fileType
         fileInfoVC.canExport = false 
     }
-    
+
     deinit {
         assert(childCoordinators.isEmpty)
         removeAllChildCoordinators()
     }
-    
+
     func start() {
         setupCloseButton()
         router.push(fileInfoVC, animated: true, onPop: { [weak self] in
@@ -52,32 +52,32 @@ final class FileInfoCoordinator: Coordinator {
         })
         refresh()
     }
-    
+
     func dismiss() {
         router.pop(viewController: fileInfoVC, animated: true)
     }
-    
+
     private func setupCloseButton() {
         guard router.navigationController.topViewController == nil else {
             return
         }
-        
+
         let closeButton = UIBarButtonItem(
             barButtonSystemItem: .close,
             target: self,
             action: #selector(didPressDismiss))
         fileInfoVC.navigationItem.leftBarButtonItem = closeButton
     }
-    
+
     @objc
     private func didPressDismiss(_ sender: Any) {
         dismiss()
     }
-    
+
     func refresh() {
         fileInfoVC.showBusyIndicator(true, animated: false)
         fileInfoVC.updateFileInfo(fileInfo, error: nil) 
-        
+
         fileRef.refreshInfo { [weak self] result in
             guard let self = self else { return }
             let fileInfoVC = self.fileInfoVC
@@ -127,7 +127,7 @@ extension FileInfoCoordinator: FileInfoDelegate {
             FileExportHelper.showFileExportSheet(fileRef, at: popoverAnchor, parent: viewController)
         }
     }
-    
+
     func didPressEliminate(at popoverAnchor: PopoverAnchor, in viewController: FileInfoVC) {
         FileDestructionHelper.destroyFile(
             fileRef,
@@ -143,14 +143,14 @@ extension FileInfoCoordinator: FileInfoDelegate {
             }
         )
     }
-    
+
     func canExcludeFromBackup(in viewController: FileInfoVC) -> Bool {
         let isLocalFile = fileRef.location.isInternal ||
                 fileRef.fileProvider == .some(.localStorage)
         let isExclusionAttributeDefined = (fileInfo?.isExcludedFromBackup != nil)
         return isLocalFile && isExclusionAttributeDefined
     }
-    
+
     func didChangeExcludeFromBackup(shouldExclude: Bool, in viewController: FileInfoVC) {
         setExcludedFromBackup(shouldExclude)
     }

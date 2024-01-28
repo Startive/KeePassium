@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -20,7 +20,7 @@ extension LString {
             value: "File Info",
             comment: "Title of a dialog with file details (name, size, dates)"
         )
-        
+
         public static let fieldFileName = NSLocalizedString(
             "[FileInfo/Field/title] File Name",
             bundle: Bundle.framework,

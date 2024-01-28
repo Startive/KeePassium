@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -10,16 +10,16 @@ import UIKit
 
 class DismissableNavigationController: UINavigationController {
     typealias DismissHandler = () -> Void
-    
+
     public var dismissHandler: DismissHandler?
-    
+
     init(
         rootViewController: UIViewController,
         leftButton: UIBarButtonItem.SystemItem? = nil,
-        rightButton: UIBarButtonItem.SystemItem? = .done)
-    {
+        rightButton: UIBarButtonItem.SystemItem? = .done
+    ) {
         super.init(rootViewController: rootViewController)
-        
+
         if let leftButtonSystemItem = leftButton {
             let leftButton = UIBarButtonItem(
                 barButtonSystemItem: leftButtonSystemItem,
@@ -35,15 +35,15 @@ class DismissableNavigationController: UINavigationController {
             rootViewController.navigationItem.rightBarButtonItem = rightButton
         }
     }
-    
+
     override init(nibName nibNameOrNil: String?, bundle nibBundleOrNil: Bundle?) {
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
-    
+
     @objc func didPressButton() {
         self.dismiss(animated: true) { 
             self.dismissHandler?()

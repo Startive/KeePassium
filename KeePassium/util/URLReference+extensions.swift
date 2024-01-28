@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -9,7 +9,7 @@
 import KeePassiumLib
 
 extension URLReference {
-    
+
     func getIconSymbol(fileType: FileType) -> SymbolName? {
         switch fileType {
         case .database:
@@ -18,7 +18,7 @@ extension URLReference {
             return .keyFile
         }
     }
-    
+
     private func getDatabaseIconSymbol() -> SymbolName? {
         switch self.location {
         case .external, .remote:
@@ -29,12 +29,12 @@ extension URLReference {
             return .clockArrowCirclepath
         }
     }
-    
+
     private func getExternalDatabaseIconSymbol() -> SymbolName {
         guard let fileProvider else {
             return .fileProviderGeneric
         }
-        
+
         if let fileInfo = self.getCachedInfoSync(canFetch: false),
            fileInfo.isInTrash
         {

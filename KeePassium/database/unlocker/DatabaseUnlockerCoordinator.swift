@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -12,7 +12,7 @@ typealias DatabaseUnlockResult = Result<Database, Error>
 
 protocol DatabaseUnlockerCoordinatorDelegate: AnyObject {
     func shouldDismissFromKeyboard(_ coordinator: DatabaseUnlockerCoordinator) -> Bool
-    
+
     func shouldAutoUnlockDatabase(
         _ fileRef: URLReference,
         in coordinator: DatabaseUnlockerCoordinator
@@ -24,12 +24,12 @@ protocol DatabaseUnlockerCoordinatorDelegate: AnyObject {
         reason: String?,
         in coordinator: DatabaseUnlockerCoordinator
     )
-    
+
     func shouldChooseFallbackStrategy(
         for fileRef: URLReference,
         in coordinator: DatabaseUnlockerCoordinator
     ) -> UnreachableFileFallbackStrategy
-    
+
     func didUnlockDatabase(
         databaseFile: DatabaseFile,
         at fileRef: URLReference,
@@ -49,18 +49,20 @@ final class DatabaseUnlockerCoordinator: Coordinator, Refreshable {
     var childCoordinators = [Coordinator]()
     var dismissHandler: CoordinatorDismissHandler?
     weak var delegate: DatabaseUnlockerCoordinatorDelegate?
-    
+
+    var reloadingContext: DatabaseReloadContext?
+
     private let router: NavigationRouter
     private let databaseUnlockerVC: DatabaseUnlockerVC
-    
+
     private var databaseRef: URLReference
     private var fallbackDatabaseRef: URLReference?
     private var selectedKeyFileRef: URLReference?
     private var selectedHardwareKey: YubiKey?
-    
+
     private var state: State = .unlockOriginalFileFast
     private var databaseLoader: DatabaseLoader?
-    
+
     init(router: NavigationRouter, databaseRef: URLReference) {
         self.router = router
         self.databaseRef = databaseRef
@@ -71,12 +73,12 @@ final class DatabaseUnlockerCoordinator: Coordinator, Refreshable {
         databaseUnlockerVC.shouldAutofocus = true
         databaseUnlockerVC.databaseRef = databaseRef
     }
-    
+
     deinit {
         assert(childCoordinators.isEmpty)
         removeAllChildCoordinators()
     }
-    
+
     func start() {
         router.push(databaseUnlockerVC, animated: true, onPop: { [weak self] in
             guard let self = self else { return }
@@ -85,20 +87,20 @@ final class DatabaseUnlockerCoordinator: Coordinator, Refreshable {
         })
         setDatabase(databaseRef)
     }
-    
+
     func refresh() {
         databaseUnlockerVC.refresh()
     }
-    
+
     func cancelLoading(reason: ProgressEx.CancellationReason) {
         databaseLoader?.cancel(reason: reason)
     }
-    
+
     func setDatabase(_ fileRef: URLReference) {
         databaseRef = fileRef
         fallbackDatabaseRef = DatabaseManager.getFallbackFile(for: databaseRef)
         databaseUnlockerVC.databaseRef = fileRef
-        
+
         guard let dbSettings = DatabaseSettingsManager.shared.getSettings(for: databaseRef) else {
             setKeyFile(nil)
             setHardwareKey(nil)
@@ -106,7 +108,7 @@ final class DatabaseUnlockerCoordinator: Coordinator, Refreshable {
             refresh()
             return
         }
-        
+
         if let associatedKeyFileRef = dbSettings.associatedKeyFile {
             let allKeyFiles = FileKeeper.shared.getAllReferences(
                 fileType: .keyFile,
@@ -121,27 +123,27 @@ final class DatabaseUnlockerCoordinator: Coordinator, Refreshable {
 
         let associatedYubiKey = dbSettings.associatedYubiKey
         setHardwareKey(associatedYubiKey) 
-        
+
         state = .unlockOriginalFileFast
         refresh()
-        
+
         DispatchQueue.main.async { [self] in
             maybeShowInitialDatabaseError(fileRef)
         }
     }
-    
+
     private func maybeShowInitialDatabaseError(_ fileRef: URLReference) {
         databaseUnlockerVC.hideErrorMessage(animated: false)
         if let fileAccessError = fileRef.error {
             showFileError(fileAccessError)
             return
         }
-        
+
         let timeout = Timeout(duration: 2.0)
         fileRef.refreshInfo(timeout: timeout) { [weak self] result in
             guard let self = self else { return }
             switch result {
-            case .success(_):
+            case .success:
                 self.refresh()
             case .failure(let fileAccessError):
                 if fileAccessError.isTimeout {
@@ -167,7 +169,7 @@ extension DatabaseUnlockerCoordinator {
         viewController.present(modalRouter, animated: true, completion: nil)
         addChildCoordinator(diagnosticsViewerCoordinator)
     }
-    
+
     private func getPopoverRouter(at popoverAnchor: PopoverAnchor) -> NavigationRouter {
         #if AUTOFILL_EXT
         if ProcessInfo.isRunningOnMac {
@@ -176,7 +178,7 @@ extension DatabaseUnlockerCoordinator {
         #endif
         return NavigationRouter.createModal(style: .popover, at: popoverAnchor)
     }
-    
+
     private func selectKeyFile(
         at popoverAnchor: PopoverAnchor,
         in viewController: UIViewController
@@ -193,7 +195,7 @@ extension DatabaseUnlockerCoordinator {
             viewController.present(targetRouter, animated: true, completion: nil)
         }
     }
-    
+
     private func selectHardwareKey(
         at popoverAnchor: PopoverAnchor,
         in viewController: UIViewController
@@ -211,17 +213,17 @@ extension DatabaseUnlockerCoordinator {
             viewController.present(targetRouter, animated: true, completion: nil)
         }
     }
-    
+
     private func setKeyFile(_ fileRef: URLReference?) {
         selectedKeyFileRef = fileRef
         DatabaseSettingsManager.shared.updateSettings(for: databaseRef) { dbSettings in
             dbSettings.maybeSetAssociatedKeyFile(fileRef)
         }
-        
+
         databaseUnlockerVC.setKeyFile(fileRef)
         databaseUnlockerVC.refresh()
     }
-    
+
     private func setHardwareKey(_ yubiKey: YubiKey?) {
         selectedHardwareKey = yubiKey
         DatabaseSettingsManager.shared.updateSettings(for: databaseRef) { dbSettings in
@@ -230,7 +232,7 @@ extension DatabaseUnlockerCoordinator {
         databaseUnlockerVC.setYubiKey(yubiKey)
         databaseUnlockerVC.refresh()
     }
-    
+
     #if AUTOFILL_EXT
     private func challengeHandlerForAutoFill(
         challenge: SecureBytes,
@@ -240,14 +242,17 @@ extension DatabaseUnlockerCoordinator {
         responseHandler(SecureBytes.empty(), .notAvailableInAutoFill)
     }
     #endif
-    
+
     private func canUnlockAutomatically() -> Bool {
+        if reloadingContext != nil {
+            return true
+        }
         guard let dbSettings = DatabaseSettingsManager.shared.getSettings(for: databaseRef) else {
             return false
         }
         return dbSettings.hasMasterKey
     }
-    
+
     private func maybeUnlockAutomatically() {
         guard canUnlockAutomatically() else {
             return
@@ -259,7 +264,7 @@ extension DatabaseUnlockerCoordinator {
             title: LString.databaseStatusLoading,
             allowCancelling: true,
             animated: false)
-        
+
         tryToUnlockDatabase()
     }
 
@@ -270,20 +275,20 @@ extension DatabaseUnlockerCoordinator {
         databaseUnlockerVC.hideErrorMessage(animated: false)
         retryToUnlockDatabase()
     }
-    
+
     private func retryToUnlockDatabase() {
         assert(databaseLoader == nil)
-        
+
         #if AUTOFILL_EXT
         let challengeHandler = (selectedHardwareKey != nil) ? challengeHandlerForAutoFill : nil
         #elseif MAIN_APP
         let challengeHandler = ChallengeResponseManager.makeHandler(for: selectedHardwareKey)
         #endif
-        
+
         let databaseSettingsManager = DatabaseSettingsManager.shared
         let dbSettings = databaseSettingsManager.getSettings(for: databaseRef)
         let compositeKey: CompositeKey
-        if let storedCompositeKey = dbSettings?.masterKey {
+        if let storedCompositeKey = reloadingContext?.compositeKey ?? dbSettings?.masterKey {
             compositeKey = storedCompositeKey
             compositeKey.challengeHandler = challengeHandler
             if state == .unlockOriginalFileSlow {
@@ -315,7 +320,7 @@ extension DatabaseUnlockerCoordinator {
             currentDatabaseRef = fallbackDatabaseRef
             databaseStatus.insert(.localFallback)
         }
-        
+
         if databaseSettingsManager.isReadOnly(currentDatabaseRef) {
             databaseStatus.insert(.readOnly)
         }
@@ -336,13 +341,13 @@ extension DatabaseUnlockerCoordinator {
         )
         databaseLoader!.load()
     }
-    
+
     private func eraseMasterKey() {
         DatabaseSettingsManager.shared.updateSettings(for: databaseRef) {
             $0.clearMasterKey()
         }
     }
-    
+
     private func showFileError(_ error: FileAccessError) {
         switch error {
         case .authorizationRequired:
@@ -367,7 +372,7 @@ extension DatabaseUnlockerCoordinator {
             )
         }
     }
-    
+
     private func showDatabaseLoadError(_ error: DatabaseLoader.Error) {
         let currentDatabaseRef: URLReference
         switch state {
@@ -377,7 +382,7 @@ extension DatabaseUnlockerCoordinator {
         case .unlockFallbackFile:
             currentDatabaseRef = fallbackDatabaseRef ?? databaseRef
         }
-        
+
         guard currentDatabaseRef.needsReinstatement else {
             databaseUnlockerVC.showErrorMessage(
                 error.localizedDescription,
@@ -400,7 +405,7 @@ extension DatabaseUnlockerCoordinator {
             )
         )
     }
-    
+
     private func showIntuneProtectionError() {
         let message = LString.Error.databaseProtectedByIntune + "\n\n" + LString.tryRemoteConnection
         databaseUnlockerVC.showErrorMessage(
@@ -427,7 +432,7 @@ extension DatabaseUnlockerCoordinator: DatabaseUnlockerDelegate {
     func willAppear(viewController: DatabaseUnlockerVC) {
         maybeUnlockAutomatically()
     }
-    
+
     func didPressSelectKeyFile(
         at popoverAnchor: PopoverAnchor,
         in viewController: DatabaseUnlockerVC
@@ -436,7 +441,7 @@ extension DatabaseUnlockerCoordinator: DatabaseUnlockerDelegate {
             self?.selectKeyFile(at: popoverAnchor, in: viewController)
         })
     }
-    
+
     func didPressSelectHardwareKey(
         at popoverAnchor: PopoverAnchor,
         in viewController: DatabaseUnlockerVC
@@ -445,11 +450,10 @@ extension DatabaseUnlockerCoordinator: DatabaseUnlockerDelegate {
             self?.selectHardwareKey(at: popoverAnchor, in: viewController)
         })
     }
-    
+
     func shouldDismissPopovers(in viewController: DatabaseUnlockerVC) {
         router.dismissModals(animated: false, completion: nil)
     }
-    
 
     func canUnlockAutomatically(_ viewController: DatabaseUnlockerVC) -> Bool {
         return canUnlockAutomatically()
@@ -461,7 +465,7 @@ extension DatabaseUnlockerCoordinator: DatabaseUnlockerDelegate {
     func didPressLock(in viewController: DatabaseUnlockerVC) {
         eraseMasterKey()
     }
-    
+
     func didPressShowDiagnostics(
         at popoverAnchor: PopoverAnchor,
         in viewController: DatabaseUnlockerVC
@@ -475,7 +479,7 @@ extension DatabaseUnlockerCoordinator: KeyFilePickerCoordinatorDelegate {
         databaseUnlockerVC.hideErrorMessage(animated: false)
         setKeyFile(keyFile)
     }
-    
+
     func didEliminateKeyFile(_ keyFile: URLReference, in coordinator: KeyFilePickerCoordinator) {
         if keyFile == selectedKeyFileRef {
             databaseUnlockerVC.hideErrorMessage(animated: false)
@@ -500,7 +504,7 @@ extension DatabaseUnlockerCoordinator: DatabaseLoaderDelegate {
             animated: true
         )
     }
-    
+
     func databaseLoader(
         _ databaseLoader: DatabaseLoader,
         didChangeProgress progress: ProgressEx,
@@ -508,7 +512,7 @@ extension DatabaseUnlockerCoordinator: DatabaseLoaderDelegate {
     ) {
         databaseUnlockerVC.updateProgressView(with: progress)
     }
-    
+
     func databaseLoader(
         _ databaseLoader: DatabaseLoader,
         didFailLoading dbRef: URLReference,
@@ -523,9 +527,9 @@ extension DatabaseUnlockerCoordinator: DatabaseLoaderDelegate {
             databaseUnlockerVC.refresh()
             databaseUnlockerVC.clearPasswordField()
             databaseUnlockerVC.hideProgressView(animated: true)
-            
+
             databaseUnlockerVC.maybeFocusOnPassword()
-        case .invalidKey(_):
+        case .invalidKey:
             switch state {
             case .unlockOriginalFileFast:
                 Diag.info("Express unlock failed, retrying slow")
@@ -541,9 +545,9 @@ extension DatabaseUnlockerCoordinator: DatabaseLoaderDelegate {
                 databaseUnlockerVC.hideProgressView(animated: false)
                 databaseUnlockerVC.showMasterKeyInvalid(message: error.localizedDescription)
             }
-        case .databaseUnreachable(_):
+        case .databaseUnreachable:
             databaseUnlockerVC.refresh()
-            
+
             let currentDatabaseRef = dbRef 
             let fallbackStrategy: UnreachableFileFallbackStrategy =
                 delegate?.shouldChooseFallbackStrategy(for: currentDatabaseRef, in: self)
@@ -572,7 +576,7 @@ extension DatabaseUnlockerCoordinator: DatabaseLoaderDelegate {
         case .wrongFormat(let fileFormat):
             databaseUnlockerVC.refresh()
             databaseUnlockerVC.hideProgressView(animated: true)
-            switch (fileFormat) {
+            switch fileFormat {
             case .intuneProtectedFile:
                 showIntuneProtectionError()
             default:
@@ -581,7 +585,7 @@ extension DatabaseUnlockerCoordinator: DatabaseLoaderDelegate {
         default:
             databaseUnlockerVC.refresh()
             databaseUnlockerVC.hideProgressView(animated: true)
-            
+
             showDatabaseLoadError(error)
             databaseUnlockerVC.maybeFocusOnPassword()
         }
@@ -592,7 +596,7 @@ extension DatabaseUnlockerCoordinator: DatabaseLoaderDelegate {
             in: self
         )
     }
-    
+
     func databaseLoader(
         _ databaseLoader: DatabaseLoader,
         didLoadDatabase dbRef: URLReference,
@@ -606,7 +610,7 @@ extension DatabaseUnlockerCoordinator: DatabaseLoaderDelegate {
             dbSettings.maybeSetMasterKey(of: databaseFile.database)
         }
         databaseUnlockerVC.clearPasswordField()
-        
+
         delegate?.didUnlockDatabase(
             databaseFile: databaseFile,
             at: databaseRef,

@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2022 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -12,7 +12,7 @@ public enum PasswordGeneratorMode: Int, Codable, CustomStringConvertible {
     case basic = 0
     case custom = 1
     case passphrase = 2
-    
+
     public var description: String {
         switch self {
         case .basic:
@@ -29,6 +29,7 @@ public extension LString {
     enum PasswordGeneratorMode {
         public static let title = NSLocalizedString(
             "[PasswordGenerator/Mode/title]",
+            bundle: Bundle.framework,
             value: "Mode",
             comment: "Operation mode of the random text generator (for example, `Basic`, `Expert`, `Passphrase`)"
         )

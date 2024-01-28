@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -15,50 +15,50 @@ protocol EntryViewerCoordinatorDelegate: AnyObject {
 }
 
 final class EntryViewerCoordinator: NSObject, Coordinator, Refreshable {
-    private enum Pages: Int {
-        static let count = 3
-        
+    private enum Pages: Int, CaseIterable {
         case fields = 0
         case files = 1
         case history = 2
+        case extra = 3
     }
-    
+
     var childCoordinators = [Coordinator]()
 
     weak var delegate: EntryViewerCoordinatorDelegate?
-    
+
     var dismissHandler: CoordinatorDismissHandler?
     private let router: NavigationRouter
-    
+
     private let databaseFile: DatabaseFile
     private let database: Database
     private var entry: Entry
     private var isHistoryEntry: Bool
     private var canEditEntry: Bool
-    
+
     private let pagesVC: EntryViewerPagesVC
-    
+
     private let fieldViewerVC: EntryFieldViewerVC
     private let fileViewerVC: EntryFileViewerVC
     private let historyViewerVC: EntryHistoryViewerVC
-    
+    private let extraViewerVC: EntryExtraViewerVC
+
     private var previewController: QLPreviewController? 
     private var temporaryAttachmentURLs = [TemporaryFileURL]()
     private var photoPicker: PhotoPicker? 
-    
+
     private let settingsNotifications: SettingsNotifications
     private weak var progressHost: ProgressViewHost?
     private var toastHost: UIViewController {
         router.navigationController
     }
-    
+
     var databaseSaver: DatabaseSaver?
     var fileExportHelper: FileExportHelper?
     var savingProgressHost: ProgressViewHost? { return progressHost }
-    
+    var saveSuccessHandler: (() -> Void)?
+
     private var expiryDateEditorModalRouter: NavigationRouter?
-    
-    
+
     init(
         entry: Entry,
         databaseFile: DatabaseFile,
@@ -75,31 +75,34 @@ final class EntryViewerCoordinator: NSObject, Coordinator, Refreshable {
         self.router = router
         self.progressHost = progressHost
         settingsNotifications = SettingsNotifications()
-        
+
         fieldViewerVC = EntryFieldViewerVC.instantiateFromStoryboard()
         fileViewerVC = EntryFileViewerVC.instantiateFromStoryboard()
         historyViewerVC = EntryHistoryViewerVC.instantiateFromStoryboard()
         pagesVC = EntryViewerPagesVC.instantiateFromStoryboard()
-        
+        extraViewerVC = EntryExtraViewerVC()
+
         super.init()
 
         fieldViewerVC.delegate = self
         fileViewerVC.delegate = self
         historyViewerVC.delegate = self
+        extraViewerVC.delegate = self
         pagesVC.dataSource = self
+        pagesVC.delegate = self
 
         settingsNotifications.observer = self
     }
-    
+
     deinit {
         dismissPreview(animated: false)
         temporaryAttachmentURLs.removeAll()
         settingsNotifications.stopObserving()
-        
+
         assert(childCoordinators.isEmpty)
         removeAllChildCoordinators()
     }
-    
+
     func start() {
         settingsNotifications.startObserving()
         entry.touch(.accessed)
@@ -117,29 +120,29 @@ final class EntryViewerCoordinator: NSObject, Coordinator, Refreshable {
         )
         refresh()
     }
-    
+
     public func dismiss(animated: Bool) {
         previewController?.dismiss(animated: animated, completion: nil)
         router.pop(viewController: pagesVC, animated: animated)
     }
-    
+
     public func setEntry(_ entry: Entry, isHistoryEntry: Bool, canEditEntry: Bool) {
         dismissPreview(animated: false)
         if let existingEntryViewerCoo = childCoordinators.first(where: { $0 is EntryViewerCoordinator }) {
             let historyEntryViewer = existingEntryViewerCoo as! EntryViewerCoordinator
             historyEntryViewer.dismiss(animated: true)
         }
-        
+
         self.entry = entry
         self.isHistoryEntry = isHistoryEntry
         self.canEditEntry = canEditEntry
         refresh()
     }
-    
+
     func refresh() {
         refresh(animated: false)
     }
-    
+
     func refresh(animated: Bool) {
         let category = ItemCategory.get(for: entry)
         let fields = ViewableEntryFieldFactory.makeAll(
@@ -161,24 +164,41 @@ final class EntryViewerCoordinator: NSObject, Coordinator, Refreshable {
             isHistoryEntry: isHistoryEntry,
             canEditEntry: canEditEntry,
             animated: animated)
+        extraViewerVC.setContents(
+            for: entry,
+            property: makeExtraProperties(),
+            canEditEntry: canEditEntry,
+            animated: animated)
         pagesVC.setContents(
             from: entry,
             isHistoryEntry: isHistoryEntry,
             canEditEntry: canEditEntry)
         pagesVC.refresh()
     }
+
+    private func makeExtraProperties() -> [EntryExtraViewerVC.Property] {
+        guard let entry2 = entry as? Entry2 else {
+            return []
+        }
+
+        return [
+            .audit(entry2.qualityCheck),
+            .autoFill(entry2.autoType.isEnabled),
+            entry2.browserHideEntry.flatMap({ .autoFillThirdParty($0) })
+        ].compactMap { $0 }
+    }
 }
 
 extension EntryViewerCoordinator: EntryViewerPagesDataSource {
     func getPageCount(for viewController: EntryViewerPagesVC) -> Int {
-        return Pages.count
+        return Pages.allCases.count
     }
-    
+
     func getPage(index: Int, for viewController: EntryViewerPagesVC) -> UIViewController? {
         guard let page = Pages(rawValue: index) else {
             return nil
         }
-        
+
         switch page {
         case .fields:
             return fieldViewerVC
@@ -186,9 +206,11 @@ extension EntryViewerCoordinator: EntryViewerPagesDataSource {
             return fileViewerVC
         case .history:
             return historyViewerVC
+        case .extra:
+            return extraViewerVC
         }
     }
-    
+
     func getPageIndex(of page: UIViewController, for viewController: EntryViewerPagesVC) -> Int? {
         switch page {
         case fieldViewerVC:
@@ -197,6 +219,8 @@ extension EntryViewerCoordinator: EntryViewerPagesDataSource {
             return Pages.files.rawValue
         case historyViewerVC:
             return Pages.history.rawValue
+        case extraViewerVC:
+            return Pages.extra.rawValue
         default:
             assertionFailure("Unexpected page VC")
             return nil
@@ -215,7 +239,7 @@ extension EntryViewerCoordinator {
         picker.delegate = self
         viewController.present(picker, animated: true, completion: nil)
     }
-    
+
     private func showPhotoAttachmentPicker(
         fromCamera: Bool,
         in viewController: UIViewController
@@ -243,6 +267,8 @@ extension EntryViewerCoordinator {
                 }
                 let fileName = (pickerImage.name ?? LString.defaultNewPhotoAttachmentName) + ".jpg"
                 self.addAttachment(name: fileName, data: ByteArray(data: imageData))
+                self.refresh(animated: true)
+                self.saveDatabase()
             case .failure(let error):
                 Diag.error("Failed to add photo attachment [message: \(error.localizedDescription)]")
                 viewController.showErrorAlert(error)
@@ -250,21 +276,20 @@ extension EntryViewerCoordinator {
         }
     }
 
-    private func loadAttachmentFile(from url: URL, success: @escaping (ByteArray)->Void) {
+    private func loadAttachmentFile(from url: URL, success: @escaping (ByteArray) -> Void) {
         Diag.info("Loading new attachment file")
         progressHost?.showProgressView(
             title: LString.statusLoadingAttachmentFile,
             allowCancelling: false,
             animated: true)
-        
+
         let fileProvider = FileProvider.find(for: url) 
         FileDataProvider.read(
             url,
             fileProvider: fileProvider,
             timeout: Timeout(duration: FileDataProvider.defaultTimeoutDuration),
             completionQueue: .main
-        ) {
-            [weak self] result in
+        ) { [weak self] result in
             assert(Thread.isMainThread)
             guard let self = self else { return }
             switch result {
@@ -278,25 +303,21 @@ extension EntryViewerCoordinator {
             }
         }
     }
-    
+
     private func addAttachment(name: String, data: ByteArray) {
         assert(canEditEntry)
         assert(Thread.isMainThread)
         entry.backupState()
-        
+
         let newAttachment = database.makeAttachment(name: name, data: data)
         if !entry.isSupportsMultipleAttachments {
             entry.attachments.removeAll()
         }
         entry.attachments.append(newAttachment)
         Diag.info("Attachment added OK")
-
-        refresh(animated: true)
-        
-        saveDatabase()
     }
 }
-    
+
 extension EntryViewerCoordinator {
     private func showExportDialog(
         for value: String,
@@ -307,12 +328,12 @@ extension EntryViewerCoordinator {
         if value.isOpenableURL, let url = URL(string: value) {
             items = [url]
         }
-        
+
         let activityVC = UIActivityViewController(activityItems: items, applicationActivities: nil)
         popoverAnchor.apply(to: activityVC.popoverPresentationController)
         viewController.present(activityVC, animated: true)
     }
-    
+
     private func showExportDialog(
         for attachment: Attachment,
         at popoverAnchor: PopoverAnchor,
@@ -322,15 +343,14 @@ extension EntryViewerCoordinator {
         do {
             let temporaryURL = try saveToTemporaryURL(attachment) 
             FileExportHelper.showFileExportSheet(temporaryURL.url, at: popoverAnchor, parent: viewController)
-            
+
             self.temporaryAttachmentURLs = [temporaryURL]
         } catch {
             Diag.error("Failed to export attachment [reason: \(error.localizedDescription)]")
             viewController.showErrorAlert(error, title: LString.titleFileExportError)
         }
     }
-    
-    
+
     private func showSaveDialog(
         for attachment: Attachment,
         at popoverAnchor: PopoverAnchor,
@@ -355,7 +375,7 @@ extension EntryViewerCoordinator {
         fileExportHelper!.handler = { finalURL in
             self.fileExportHelper = nil 
             guard finalURL != nil else { return }
-            
+
             Diag.info("Attachment saved OK")
             viewController.showSuccessNotification(
                 LString.actionDone,
@@ -364,7 +384,7 @@ extension EntryViewerCoordinator {
         }
         fileExportHelper!.saveAs(presenter: viewController)
     }
-    
+
     private func showPreview(
         for attachments: [Attachment],
         at popoverAnchor: PopoverAnchor,
@@ -380,9 +400,9 @@ extension EntryViewerCoordinator {
                 return nil
             }
         }
-        
+
         temporaryAttachmentURLs = urls
-        
+
         let previewController = QLPreviewController()
         previewController.dataSource = self
         previewController.delegate = self
@@ -395,7 +415,7 @@ extension EntryViewerCoordinator {
             })
         }
     }
-    
+
     private func dismissPreview(animated: Bool) {
         guard let previewController = previewController else { return }
         if ProcessInfo.isRunningOnMac {
@@ -413,7 +433,7 @@ extension EntryViewerCoordinator {
             Diag.warning("Failed to create a URL from attachment name [name: \(attachment.name)]")
             throw CocoaError.error(.fileWriteInvalidFileName)
         }
-        
+
         do {
             let uncompressedBytes: ByteArray
             if attachment.isCompressed {
@@ -457,14 +477,14 @@ extension EntryViewerCoordinator {
         entryFieldEditorCoordinator.delegate = self
         entryFieldEditorCoordinator.start()
         modalRouter.dismissAttemptDelegate = entryFieldEditorCoordinator
-        
+
         router.present(modalRouter, animated: true, completion: nil)
         addChildCoordinator(entryFieldEditorCoordinator)
     }
-    
+
     private func showHistoryEntry(_ entry: Entry) {
         guard let progressHost = progressHost else { return }
-        
+
         let historyEntryViewerCoordinator = EntryViewerCoordinator(
             entry: entry,
             databaseFile: databaseFile,
@@ -480,7 +500,7 @@ extension EntryViewerCoordinator {
         historyEntryViewerCoordinator.start()
         addChildCoordinator(historyEntryViewerCoordinator)
     }
-    
+
     private func showExpiryDateEditor(
         at popoverAnchor: PopoverAnchor,
         in viewController: UIViewController
@@ -498,7 +518,7 @@ extension EntryViewerCoordinator {
         viewController.present(modalRouter, animated: true, completion: nil)
         expiryDateEditorModalRouter = modalRouter
     }
-    
+
     private func showDiagnostics() {
         let modalRouter = NavigationRouter.createModal(style: .pageSheet)
         let diagnosticsCoordinator = DiagnosticsViewerCoordinator(router: modalRouter)
@@ -509,7 +529,7 @@ extension EntryViewerCoordinator {
         router.present(modalRouter, animated: true, completion: nil)
         addChildCoordinator(diagnosticsCoordinator)
     }
-    
+
     private func saveDatabase() {
         guard canEditEntry else {
             Diag.warning("Tried to save non-editable entry, aborting")
@@ -517,11 +537,15 @@ extension EntryViewerCoordinator {
             return
         }
         entry.touch(.modified, updateParents: false)
-        
+
         delegate?.didUpdateEntry(entry, in: self)
-        EntryChangeNotifications.post(entryDidChange: entry)
-        
+
         saveDatabase(databaseFile)
+    }
+
+    private func copyText(text: String) {
+        entry.touch(.accessed)
+        Clipboard.general.insert(text)
     }
 }
 
@@ -537,16 +561,15 @@ extension EntryViewerCoordinator: EntryFieldViewerDelegate {
         }
         showEntryFieldEditor()
     }
-    
+
     func didPressCopyField(
         text: String,
         from viewableField: ViewableField,
         in viewController: EntryFieldViewerVC
     ) {
-        entry.touch(.accessed)
-        Clipboard.general.insert(text)
+        copyText(text: text)
     }
-    
+
     func didPressExportField(
         text: String,
         from viewableField: ViewableField,
@@ -555,7 +578,7 @@ extension EntryViewerCoordinator: EntryFieldViewerDelegate {
     ) {
         showExportDialog(for: text, at: popoverAnchor, in: viewController)
     }
-    
+
     func didPressCopyFieldReference(
         from viewableField: ViewableField,
         in viewController: EntryFieldViewerVC
@@ -573,7 +596,7 @@ extension EntryViewerCoordinator: EntryFieldViewerDelegate {
 }
 
 extension EntryViewerCoordinator: EntryFileViewerDelegate {
-    
+
     func didPressAddFile(at popoverAnchor: PopoverAnchor, in viewController: EntryFileViewerVC) {
         guard canEditEntry else {
             Diag.warning("Tried to modify non-editable entry")
@@ -582,7 +605,7 @@ extension EntryViewerCoordinator: EntryFileViewerDelegate {
         }
         showFileAttachmentPicker(in: viewController)
     }
-    
+
     func didPressAddPhoto(
         fromCamera: Bool,
         at popoverAnchor: PopoverAnchor,
@@ -595,7 +618,7 @@ extension EntryViewerCoordinator: EntryFileViewerDelegate {
         }
         showPhotoAttachmentPicker(fromCamera: fromCamera, in: viewController)
     }
-    
+
     func shouldReplaceExistingFile(in viewController: EntryFileViewerVC) -> Bool {
         assert(canEditEntry, "Asked to replace file in non-editable entry")
         let canAddWithoutReplacement = entry.attachments.isEmpty || entry.isSupportsMultipleAttachments
@@ -620,11 +643,11 @@ extension EntryViewerCoordinator: EntryFileViewerDelegate {
         viewController.refresh()
         saveDatabase()
     }
-    
+
     func canPreviewFiles(in viewController: EntryFileViewerVC) -> Bool {
         return PremiumManager.shared.isAvailable(feature: .canPreviewAttachments)
     }
-    
+
     func didPressView(
         file attachment: Attachment,
         at popoverAnchor: PopoverAnchor,
@@ -643,14 +666,14 @@ extension EntryViewerCoordinator: EntryFileViewerDelegate {
     ) {
         showPreview(for: attachments, at: popoverAnchor, in: viewController)
     }
-    
+
     func didPressDelete(
         files attachmentsToDelete: [Attachment],
         in viewController: EntryFileViewerVC
     ) {
         Diag.debug("Deleting attached files")
         assert(canEditEntry, "Tried to delete file from non-editable entry")
-        
+
         entry.backupState()
         let newAttachments = entry.attachments.compactMap { attachment -> Attachment? in
             let shouldBeDeleted = attachmentsToDelete.contains(where: { $0 === attachment })
@@ -664,11 +687,64 @@ extension EntryViewerCoordinator: EntryFileViewerDelegate {
     }
 }
 
+extension EntryViewerCoordinator: EntryExtraViewerVCDelegate {
+    func didPressCopyField(text: String, in viewController: EntryExtraViewerVC) {
+        copyText(text: text)
+    }
+
+    func didPressExportField(text: String, at popoverAnchor: PopoverAnchor, in viewController: EntryExtraViewerVC) {
+        showExportDialog(for: text, at: popoverAnchor, in: viewController)
+    }
+
+    func didUpdateProperties(properties: [EntryExtraViewerVC.Property], in viewController: EntryExtraViewerVC) {
+        guard let entry2 = entry as? Entry2 else {
+            assertionFailure("Requires Entry2, this should be blocked in UI.")
+            return
+        }
+
+        let action = { [weak self] in
+            guard let self = self else {
+                return
+            }
+
+            properties.forEach {
+                switch $0 {
+                case .audit(let value):
+                    entry2.qualityCheck = value
+                case .autoFill(let value):
+                    entry2.autoType.isEnabled = value
+                case .autoFillThirdParty(let value):
+                    entry2.browserHideEntry = value
+                }
+            }
+
+            entry2.touch(.modified)
+            self.saveDatabase(self.databaseFile)
+            self.refresh()
+        }
+
+        let willUpdateAuditOption = properties.contains(where: { $0 == .audit(!entry2.qualityCheck) })
+        if willUpdateAuditOption {
+            requestFormatUpgradeIfNecessary(
+                in: viewController,
+                for: database,
+                and: .qualityCheckFlag
+            ) {
+                action()
+            }
+        } else {
+            action()
+        }
+    }
+}
+
 extension EntryViewerCoordinator: UIDocumentPickerDelegate {
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         guard let url = urls.first else { return }
-        loadAttachmentFile(from: url, success: { [weak self] (fileData) in
+        loadAttachmentFile(from: url, success: { [weak self] fileData in
             self?.addAttachment(name: url.lastPathComponent, data: fileData)
+            self?.refresh(animated: true)
+            self?.saveDatabase()
         })
     }
 }
@@ -688,7 +764,7 @@ extension EntryViewerCoordinator: EntryHistoryViewerDelegate {
     ) {
         showExpiryDateEditor(at: popoverAnchor, in: viewController)
     }
-    
+
     func didPressRestore(historyEntry: Entry2, in viewController: EntryHistoryViewerVC) {
         Diag.debug("Restoring historical entry")
         assert(canEditEntry)
@@ -705,7 +781,7 @@ extension EntryViewerCoordinator: EntryHistoryViewerDelegate {
         toastHost.showNotification(LString.previousItemVersionRestored)
         saveDatabase()
     }
-    
+
     func didPressDelete(
         historyEntries historyEntriesToDelete: [Entry2],
         in viewController: EntryHistoryViewerVC
@@ -726,7 +802,7 @@ extension EntryViewerCoordinator: EntryHistoryViewerDelegate {
         Diag.info("Historical entries deleted")
         saveDatabase()
     }
-    
+
     func didSelectHistoryEntry(_ entry: Entry2, in viewController: EntryHistoryViewerVC) {
         showHistoryEntry(entry)
     }
@@ -737,7 +813,7 @@ extension EntryViewerCoordinator: ExpiryDateEditorDelegate {
         expiryDateEditorModalRouter?.dismiss(animated: true)
         expiryDateEditorModalRouter = nil
     }
-    
+
     func didChangeExpiryDate(
         _ expiryDate: Date,
         canExpire: Bool,
@@ -756,7 +832,7 @@ extension EntryViewerCoordinator: EntryViewerCoordinatorDelegate {
     func didRelocateDatabase(_ databaseFile: DatabaseFile, to url: URL) {
         delegate?.didRelocateDatabase(databaseFile, to: url)
     }
-    
+
     func didUpdateEntry(_ entry: Entry, in coordinator: EntryViewerCoordinator) {
         assertionFailure("History entries cannot be modified")
     }
@@ -773,15 +849,15 @@ extension EntryViewerCoordinator: DatabaseSaving {
     func willStartSaving(databaseFile: DatabaseFile) {
         assert(canEditEntry)
     }
-    
+
     func getDatabaseSavingErrorParent() -> UIViewController {
         return router.navigationController
     }
-    
+
     func getDiagnosticsHandler() -> (() -> Void)? {
         return showDiagnostics
     }
-    
+
     func didRelocate(databaseFile: DatabaseFile, to newURL: URL) {
         delegate?.didRelocateDatabase(databaseFile, to: newURL)
     }
@@ -800,7 +876,7 @@ extension EntryViewerCoordinator: QLPreviewControllerDataSource {
     func numberOfPreviewItems(in controller: QLPreviewController) -> Int {
         return temporaryAttachmentURLs.count
     }
-    
+
     func previewController(
         _ controller: QLPreviewController,
         previewItemAt index: Int
@@ -813,5 +889,38 @@ extension EntryViewerCoordinator: QLPreviewControllerDataSource {
 extension EntryViewerCoordinator: QLPreviewControllerDelegate {
     func previewControllerDidDismiss(_ controller: QLPreviewController) {
         previewController = nil
+    }
+}
+
+extension EntryViewerCoordinator: EntryViewerPagesVCDelegate {
+    func canDropFiles(_ files: [UIDragItem]) -> Bool {
+        guard canEditEntry else {
+            return false
+        }
+
+        if entry.isSupportsMultipleAttachments {
+            return true
+        }
+
+        let isTooCrowded = files.count > 1 || entry.attachments.count > 0
+        return !isTooCrowded
+    }
+
+    func didDropFiles(_ files: [TemporaryFileURL]) {
+        let dispatchGroup = DispatchGroup()
+        for file in files {
+            dispatchGroup.enter()
+
+            loadAttachmentFile(from: file.url) { [weak self] fileData in
+                self?.addAttachment(name: file.url.lastPathComponent, data: fileData)
+                dispatchGroup.leave()
+            }
+        }
+
+        dispatchGroup.notify(queue: .main) { [weak self] in
+            Diag.debug("Dropped files added, refreshing and saving")
+            self?.refresh(animated: true)
+            self?.saveDatabase()
+        }
     }
 }

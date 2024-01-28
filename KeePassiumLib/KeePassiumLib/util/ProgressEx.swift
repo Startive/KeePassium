@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -12,8 +12,9 @@ public class ProgressEx: Progress {
     public enum CancellationReason {
         case userRequest
         case lowMemoryWarning
-        
+
         var localizedDescription: String {
+            // swiftlint:disable line_length
             switch self {
             case .userRequest:
                 return NSLocalizedString(
@@ -28,20 +29,21 @@ public class ProgressEx: Progress {
                     value: "Not enough memory to continue.\nThis can happen with larger databases or too ambitious database settings (Argon2 memory parameter).",
                     comment: "Error message when a long-running operation was cancelled due to the lack of free memory (RAM).")
             }
+            // swiftlint:enable line_length
         }
     }
-    
+
     public var status: String {
         get { return localizedDescription }
         set { localizedDescription = newValue }
     }
-    
+
     public override var localizedDescription: String! {
         didSet {
             parent?.localizedDescription = localizedDescription
         }
     }
-    
+
     public private(set) var cancellationReason: CancellationReason = .userRequest {
         didSet {
             children.forEach {
@@ -49,18 +51,20 @@ public class ProgressEx: Progress {
             }
         }
     }
-    
+
     private var children = [Weak<ProgressEx>]()
-    
+
     private weak var parent: ProgressEx?
-    
+
+    public var onCancel: (() -> Void)?
+
     override public init(
         parent parentProgressOrNil: Progress?,
-        userInfo userInfoOrNil: [ProgressUserInfoKey : Any]? = nil)
-    {
+        userInfo userInfoOrNil: [ProgressUserInfoKey: Any]? = nil
+    ) {
         super.init(parent: parentProgressOrNil, userInfo: userInfoOrNil)
     }
-    
+
     public override func addChild(_ child: Progress, withPendingUnitCount inUnitCount: Int64) {
         if let child = child as? ProgressEx {
             child.parent = self
@@ -73,10 +77,14 @@ public class ProgressEx: Progress {
             self.localizedDescription = child.localizedDescription
         }
     }
-    
+
     public func cancel(reason: CancellationReason) {
         self.cancellationReason = reason
         super.cancel()
     }
-}
 
+    override public func cancel() {
+      super.cancel()
+      onCancel?()
+    }
+}

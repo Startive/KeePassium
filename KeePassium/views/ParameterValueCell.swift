@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -10,7 +10,7 @@ import KeePassiumLib
 
 final class ParameterValueCell: UITableViewCell {
     public static let reuseIdentifier = "ParameterValueCell"
-    
+
     var menu: UIMenu? {
         didSet {
             theButton?.menu = menu
@@ -18,7 +18,7 @@ final class ParameterValueCell: UITableViewCell {
         }
     }
     private var theButton: UIButton!
-    
+
     override func awakeFromNib() {
         super.awakeFromNib()
         theButton = UIButton(frame: self.bounds)
@@ -29,12 +29,12 @@ final class ParameterValueCell: UITableViewCell {
         theButton.menu = menu
         setupAccessory()
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         theButton.frame = contentView.bounds
     }
-    
+
     private func setupAccessory() {
         let button = UIButton(type: .detailDisclosure)
         button.tintColor = .secondaryLabel

@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -17,9 +17,11 @@ public enum CryptoError: LocalizedError {
     case argon2Error(code: Int)
     case twofishError(code: Int)
     case rngError(code: Int)
+
     public var errorDescription: String? {
+        // swiftlint:disable line_length
         switch self {
-        case .invalidKDFParam(let kdfName, let paramName):
+        case let .invalidKDFParam(kdfName, paramName):
             return String.localizedStringWithFormat(
                 NSLocalizedString(
                     "[CryptoError] Invalid KDF parameter: %@ - %@. File corrupt?",
@@ -85,5 +87,6 @@ public enum CryptoError: LocalizedError {
                     comment: "Error message about random number generator. [errorCode: Int]"),
                 code)
         }
+        // swiftlint:enable line_length
     }
 }

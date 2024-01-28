@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -12,15 +12,15 @@ final class FileExportHelper: NSObject {
     private let data: ByteArray
     private let fileName: String
     private var tmpURL: TemporaryFileURL?
-    
+
     var handler: ((_ newURL: URL?) -> Void)?
-    
+
     init(data: ByteArray, fileName: String) {
         self.data = data
         self.fileName = fileName
         super.init()
     }
-    
+
     public func saveAs(presenter viewController: UIViewController) {
         assert(handler != nil, "The `handler` callback must be defined for processing user choice")
         do {
@@ -45,7 +45,7 @@ extension FileExportHelper: UIDocumentPickerDelegate {
     func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
         handler?(nil)
     }
-    
+
     func documentPicker(
         _ controller: UIDocumentPickerViewController,
         didPickDocumentsAt urls: [URL]
@@ -62,12 +62,11 @@ extension FileExportHelper: UIDocumentPickerDelegate {
             fileProvider: fileProvider,
             timeout: Timeout(duration: FileDataProvider.defaultTimeoutDuration),
             completionQueue: .main
-        ) {
-            [self] result in
+        ) { [self] result in
             switch result {
             case .success:
                 self.handler?(url)
-            case .failure(_):
+            case .failure:
                 Diag.error("Failed to save file, cancelling")
                 self.handler?(nil)
             }
@@ -76,7 +75,7 @@ extension FileExportHelper: UIDocumentPickerDelegate {
 }
 
 extension FileExportHelper {
-    
+
     public static func revealInFinder(_ urlRef: URLReference) {
         assert(ProcessInfo.isRunningOnMac)
         let NSWorkspace = NSClassFromString("NSWorkspace") as AnyObject
@@ -102,13 +101,13 @@ extension FileExportHelper {
             Diag.warning("Failed to reveal the file [message: \(error.localizedDescription)]")
         }
     }
-    
+
     public static func showFileExportSheet(
         _ urlRef: URLReference,
         at popoverAnchor: PopoverAnchor,
         parent: UIViewController,
-        completion: UIActivityViewController.CompletionWithItemsHandler?=nil)
-    {
+        completion: UIActivityViewController.CompletionWithItemsHandler? = nil
+    ) {
         do {
             let url = try urlRef.resolveSync()
             FileExportHelper.showFileExportSheet(url, at: popoverAnchor, parent: parent, completion: completion)
@@ -120,13 +119,13 @@ extension FileExportHelper {
             parent.present(alert, animated: true, completion: nil)
         }
     }
-    
+
     public static func showFileExportSheet(
         _ url: URL,
         at popoverAnchor: PopoverAnchor,
         parent: UIViewController,
-        completion: UIActivityViewController.CompletionWithItemsHandler?=nil)
-    {
+        completion: UIActivityViewController.CompletionWithItemsHandler? = nil
+    ) {
         let exportSheet = UIActivityViewController(
             activityItems: [url],
             applicationActivities: nil)

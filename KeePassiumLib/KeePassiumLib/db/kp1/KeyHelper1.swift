@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -12,21 +12,21 @@ class KeyHelper1: KeyHelper {
     override init() {
         super.init()
     }
-    
+
     override func getPasswordData(password: String) -> SecureBytes {
         guard let data = password.data(using: .isoLatin1, allowLossyConversion: true) else {
             fatalError("getPasswordData(KP1): Failed lossy conversion to ISO Latin 1")
         }
         return SecureBytes.from(data)
     }
-    
+
     override func combineComponents(
         passwordData: SecureBytes,
         keyFileData: SecureBytes
     ) throws -> SecureBytes {
         let hasPassword = !passwordData.isEmpty
         let hasKeyFile = !keyFileData.isEmpty
-        
+
         if hasPassword && hasKeyFile {
             Diag.info("Using password and key file")
             let preKey = SecureBytes.concat(
@@ -44,11 +44,11 @@ class KeyHelper1: KeyHelper {
             return SecureBytes.empty().sha256
         }
     }
-    
-    override func getKey(fromCombinedComponents combinedComponents: SecureBytes) -> SecureBytes{
+
+    override func getKey(fromCombinedComponents combinedComponents: SecureBytes) -> SecureBytes {
         return combinedComponents 
     }
-    
+
     override func processXmlKeyFile(keyFileData: SecureBytes) throws -> SecureBytes? {
         return nil
     }

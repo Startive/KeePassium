@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018-2022 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -15,16 +15,16 @@ public enum WebDAVFileURL {
         "webdav\(urlSchemePrefixSeparator)http",
         "webdav\(urlSchemePrefixSeparator)https"
     ]
-    
+
     public static func build(nakedURL: URL) -> URL {
         let prefixedURL = nakedURL.withSchemePrefix(schemePrefix)
         return prefixedURL
     }
-    
+
     internal static func getNakedURL(from prefixedURL: URL) -> URL {
         return prefixedURL.withoutSchemePrefix()
     }
-    
+
     public static func getDescription(for prefixedURL: URL) -> String? {
         let urlString = getNakedURL(from: prefixedURL).absoluteString
         return "\(LString.connectionTypeWebDAV) → \(urlString)"

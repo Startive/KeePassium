@@ -1,14 +1,13 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 // 
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
 //  by the Free Software Foundation: https://www.gnu.org/licenses/).
 //  For commercial licensing, please contact the author.
 
-import UIKit
 import KeePassiumLib
-
+import UIKit
 
 class ViewableFieldCellFactory {
     public static func dequeueAndConfigureCell(
@@ -16,10 +15,10 @@ class ViewableFieldCellFactory {
         for indexPath: IndexPath,
         field: ViewableField
     ) -> ViewableFieldCell {
-        
+
         let isPasswordField = field.internalName == EntryField.password
         let isOpenableURL = field.resolvedValue?.isOpenableURL ?? false
-        
+
         let cell: ViewableFieldCell
         if field is TOTPViewableField {
             cell = tableView.dequeueReusableCell(
@@ -56,11 +55,11 @@ class ViewableFieldCellFactory {
 
 protocol ViewableFieldCellDelegate: AnyObject {
     func cellHeightDidChange(_ cell: ViewableFieldCell)
-    
+
     func cellDidExpand(_ cell: ViewableFieldCell)
-    
+
     func didTapCellValue(_ cell: ViewableFieldCell)
-    
+
     func didLongTapAccessoryButton(_ cell: ViewableFieldCell)
 }
 
@@ -76,10 +75,10 @@ protocol ViewableFieldCellBase: AnyObject {
     var nameLabel: UILabel! { get }
     var valueText: UITextView! { get }
     var valueScrollView: UIScrollView! { get }
-    
+
     var delegate: ViewableFieldCellDelegate? { get set }
     var field: ViewableField? { get set }
-    
+
     func setupCell()
     func getUserVisibleValue() -> String?
 }
@@ -89,10 +88,10 @@ class ViewableFieldCell: UITableViewCell, ViewableFieldCellBase {
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var valueText: UITextView!
     @IBOutlet weak var valueScrollView: UIScrollView!
-        
+
     weak var delegate: ViewableFieldCellDelegate?
     weak var field: ViewableField?
-    
+
     override func awakeFromNib() {
         super.awakeFromNib()
         let textTapGestureRecognizer = UITapGestureRecognizer(
@@ -105,7 +104,7 @@ class ViewableFieldCell: UITableViewCell, ViewableFieldCellBase {
             action: #selector(didTapValueTextView))
         scrollTapGestureRecognizer.numberOfTapsRequired = 1
         valueScrollView.addGestureRecognizer(scrollTapGestureRecognizer)
-        
+
         valueScrollView.alwaysBounceVertical = false
         valueScrollView.alwaysBounceHorizontal = false
         if ProcessInfo.isCatalystApp {
@@ -113,18 +112,17 @@ class ViewableFieldCell: UITableViewCell, ViewableFieldCellBase {
             valueScrollView.showsVerticalScrollIndicator = false
         }
     }
-    
+
     func setupCell() {
         let textScale = Settings.current.textScale
         nameLabel.font = UIFont
             .preferredFont(forTextStyle: .subheadline)
             .withRelativeSize(textScale)
         nameLabel.adjustsFontForContentSizeCategory = true
-        valueText.font = UIFont
-            .monospaceFont(forTextStyle: .body)
-            .withRelativeSize(textScale)
+
+        valueText.font = UIFont.entryTextFont().withRelativeSize(textScale)
         valueText.adjustsFontForContentSizeCategory = true
-        
+
         nameLabel.text = field?.visibleName
         valueText.text = getUserVisibleValue()
         accessibilityHint = LString.hintDoubleTapToCopyToClipboard
@@ -133,7 +131,7 @@ class ViewableFieldCell: UITableViewCell, ViewableFieldCellBase {
     func getUserVisibleValue() -> String? {
         return field?.decoratedValue
     }
-    
+
     @objc func didTapValueTextView(_ sender: UITextView) {
         if let selRange = valueText.selectedTextRange,
             !selRange.isEmpty
@@ -164,13 +162,13 @@ class URLFieldCell: ViewableFieldCell {
     override class var storyboardID: String { "URLFieldCell" }
 
     private var url: URL?
-    
+
     override func setupCell() {
         super.setupCell()
-        
+
         let urlString = field?.resolvedValue ?? ""
         url = URL(string: urlString)
-        
+
         let openURLButton = OpenURLAccessoryButton()
         openURLButton.addTarget(
             self,
@@ -181,7 +179,7 @@ class URLFieldCell: ViewableFieldCell {
             action: #selector(handleLongPressURLButton))
         openURLButton.addGestureRecognizer(longTapRecognizer)
         accessoryView = openURLButton
-        
+
         let openURLAction = UIAccessibilityCustomAction(
             name: LString.actionOpenURL,
             target: self,
@@ -193,18 +191,18 @@ class URLFieldCell: ViewableFieldCell {
         accessibilityCustomActions = [openURLAction, shareAction]
         valueText.accessibilityTraits = .link
     }
-    
+
     @objc
     private func handleLongPressURLButton(_ gestureRecognizer: UILongPressGestureRecognizer) {
         guard gestureRecognizer.state == .began else { return }
         didPressShare(gestureRecognizer)
     }
-    
+
     @objc
     private func didPressShare(_ sender: Any) {
         delegate?.didLongTapAccessoryButton(self)
     }
-    
+
     @objc
     private func didPressOpenURLButton(_ sender: UIButton) {
         guard let url = url else { return }
@@ -214,7 +212,7 @@ class URLFieldCell: ViewableFieldCell {
 
 
 class ToggleVisibilityAccessoryButton: UIButton {
-    
+
     required init() {
         super.init(frame: .zero)
         setImage(.symbol(.eye), for: .normal)
@@ -222,7 +220,7 @@ class ToggleVisibilityAccessoryButton: UIButton {
         setImage(.symbol(.eyeFill), for: .highlighted)
         contentMode = .scaleAspectFit
         sizeToFit()
-        
+
         accessibilityLabel = LString.actionShowInPlainText
     }
 
@@ -238,22 +236,63 @@ class ProtectedFieldCell: ViewableFieldCell {
 
     override func setupCell() {
         super.setupCell()
-        
+
         let theButton = ToggleVisibilityAccessoryButton()
         theButton.addTarget(self, action: #selector(toggleValueHidden), for: .touchUpInside)
         theButton.isSelected = !(field?.isValueHidden ?? true)
         valueText.isSelectable = theButton.isSelected
-        accessoryView = theButton
         toggleButton = theButton
-        
+
+        guard field?.internalName == EntryField.password else {
+            accessoryView = theButton
+            refreshTextView()
+            return
+        }
+
+        let indicatorView = PasswordQualityIndicatorIconView()
+        indicatorView.quality = .init(password: field?.resolvedValue)
+        indicatorView.onTap = { [weak self] indicator in
+            guard let toastHost = self?.contentView,
+                  let quality = indicator.quality
+            else {
+                return
+            }
+            let description = String.localizedStringWithFormat(
+                LString.titlePasswordQualityTemplate,
+                quality.title)
+            let toastStyle = ToastStyle()
+            let toastView = toastHost.toastViewForMessage(
+                description,
+                title: nil,
+                image: .symbol(quality.symbolName, tint: quality.iconColor),
+                style: toastStyle)
+            toastHost.hideToast()
+            toastHost.showToast(toastView, duration: 1.0, position: .center, action: nil)
+        }
+
+        guard !indicatorView.isHidden else {
+            accessoryView = theButton
+            refreshTextView()
+            return
+        }
+
+        let wrapperiew = UIView()
+        wrapperiew.addSubview(theButton)
+        wrapperiew.addSubview(indicatorView)
+        wrapperiew.frame = .init(x: 0, y: 0, width: 44 + 24, height: 24)
+        indicatorView.frame = .init(x: 0, y: 0, width: 44, height: 24)
+        theButton.frame = .init(x: 44, y: 0, width: 24, height: 24)
+
+        accessoryView = wrapperiew
+
         refreshTextView()
     }
-    
+
     override func getUserVisibleValue() -> String? {
         guard let field = field else { return nil }
         return field.isValueHidden ? hiddenValueMask : field.decoratedValue
     }
-    
+
     private func refreshTextView() {
         let value = getUserVisibleValue()
         if field?.isValueHidden ?? true {
@@ -266,10 +305,10 @@ class ProtectedFieldCell: ViewableFieldCell {
                 font: valueText.font)
         }
     }
-    
+
     @objc func toggleValueHidden() {
         guard let toggleButton = toggleButton, let field = field else { return }
-        
+
         toggleButton.isSelected = !toggleButton.isSelected
         field.isValueHidden = !toggleButton.isSelected
         valueText.isSelectable = !field.isValueHidden
@@ -301,10 +340,10 @@ class ProtectedFieldCell: ViewableFieldCell {
 
 class ExpandableFieldCell: ViewableFieldCell {
     override class var storyboardID: String { "ExpandableFieldCell" }
-    
+
     @IBOutlet weak var showMoreButton: UIButton!
     @IBOutlet weak var showMoreContainer: UIView!
-    
+
     let heightLimit: CGFloat = 150.0
 
     private var heightConstraint: NSLayoutConstraint! 
@@ -312,10 +351,10 @@ class ExpandableFieldCell: ViewableFieldCell {
         let textHeight = valueScrollView.contentSize.height
         return textHeight > heightLimit
     }
-    
+
     override func setupCell() {
         super.setupCell()
-        
+
         if heightConstraint == nil {
             heightConstraint = valueScrollView.heightAnchor.constraint(lessThanOrEqualToConstant: heightLimit)
             heightConstraint.priority = .defaultHigh
@@ -327,11 +366,11 @@ class ExpandableFieldCell: ViewableFieldCell {
             self?.setupExpandButton()
         }
     }
-    
+
     private func setupExpandButton() {
         guard let field = field,
             field.isMultiline else { return }
-        
+
         let canViewMore = canBeTruncated && field.isHeightConstrained
         heightConstraint.isActive = canViewMore
 
@@ -343,7 +382,7 @@ class ExpandableFieldCell: ViewableFieldCell {
             showMoreContainer.isHidden = true
         }
     }
-    
+
     private func setButtonState(isViewMore: Bool) {
         showMoreButton.isSelected = !isViewMore
         let scaleY: CGFloat = isViewMore ? 1.0 : -1.0
@@ -352,8 +391,8 @@ class ExpandableFieldCell: ViewableFieldCell {
                 CGAffineTransform(scaleX: 1.0, y: scaleY)
         }
     }
-    
-    @IBAction func didPressShowMore(_ button: UIButton) {
+
+    @IBAction private func didPressShowMore(_ button: UIButton) {
         assert(canBeTruncated)
         guard let field = field else { return }
 
@@ -375,36 +414,35 @@ class ExpandableFieldCell: ViewableFieldCell {
 protocol DynamicFieldCell: ViewableFieldCell, Refreshable {
     func startRefreshing()
     func stopRefreshing()
-    
+
 }
 
 
 class TOTPFieldCell: ViewableFieldCell, DynamicFieldCell {
     override class var storyboardID: String { "TOTPFieldCell" }
     private let refreshInterval = 1.0
-    
+
     @IBOutlet weak var progressView: UIProgressView!
-    
+
     private var refreshTimer: Timer?
-    
+
     deinit {
         stopRefreshing()
     }
-    
+
     func startRefreshing() {
         assert(refreshTimer == nil, "Already refreshing")
         refresh()
-        refreshTimer = Timer.scheduledTimer(withTimeInterval: refreshInterval, repeats: true) {
-            [weak self] _ in
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: refreshInterval, repeats: true) { [weak self] _ in
             self?.refresh()
         }
     }
-    
+
     func stopRefreshing() {
         refreshTimer?.invalidate()
         refreshTimer = nil
     }
-    
+
     override func getUserVisibleValue() -> String? {
         guard var value = field?.value else { return nil }
         switch value.count {
@@ -417,7 +455,7 @@ class TOTPFieldCell: ViewableFieldCell, DynamicFieldCell {
         }
         return value
     }
-    
+
     override func setupCell() {
         super.setupCell()
         accessoryView = nil
@@ -425,7 +463,7 @@ class TOTPFieldCell: ViewableFieldCell, DynamicFieldCell {
         progressView.isHidden = false
         refresh()
     }
-    
+
     func refresh() {
         guard let totpViewableField = field as? TOTPViewableField else {
             assertionFailure()

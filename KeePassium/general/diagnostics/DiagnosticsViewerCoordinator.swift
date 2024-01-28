@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -11,10 +11,10 @@ import KeePassiumLib
 class DiagnosticsViewerCoordinator: NSObject, Coordinator {
     var childCoordinators = [Coordinator]()
     var dismissHandler: CoordinatorDismissHandler?
-    
+
     private var router: NavigationRouter
     private var diagnosticsViewerVC: DiagnosticsViewerVC
-    
+
     init(router: NavigationRouter) {
         self.router = router
         diagnosticsViewerVC = DiagnosticsViewerVC.create()
@@ -22,12 +22,12 @@ class DiagnosticsViewerCoordinator: NSObject, Coordinator {
 
         diagnosticsViewerVC.delegate = self
     }
-    
+
     deinit {
         assert(childCoordinators.isEmpty)
         removeAllChildCoordinators()
     }
-    
+
     func start() {
         if router.navigationController.topViewController == nil {
             let leftButton = UIBarButtonItem(
@@ -42,7 +42,7 @@ class DiagnosticsViewerCoordinator: NSObject, Coordinator {
             self.dismissHandler?(self)
         })
     }
-    
+
     @objc private func didPressDismissButton() {
         router.dismiss(animated: true)
     }
@@ -54,7 +54,7 @@ extension DiagnosticsViewerCoordinator: DiagnosticsViewerDelegate {
         HapticFeedback.play(.copiedToClipboard)
         diagnosticsViewer.showNotification(LString.diagnosticLogCopiedToClipboard)
     }
-    
+
     func didPressContactSupport(
         text: String,
         at popoverAnchor: PopoverAnchor,
@@ -63,9 +63,7 @@ extension DiagnosticsViewerCoordinator: DiagnosticsViewerDelegate {
         SupportEmailComposer.show(
             subject: .problem,
             parent: diagnosticsViewer,
-            popoverAnchor: popoverAnchor)
-        {
-            [weak self] (success) in
+            popoverAnchor: popoverAnchor) { [weak self] success in
             if !success {
                 Diag.debug("Failed to create an email message, copying to clipboard instead")
                 self?.didPressCopy(text: text, in: diagnosticsViewer)

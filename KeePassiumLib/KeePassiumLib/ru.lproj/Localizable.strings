@@ -10,6 +10,12 @@
 /* Call to action: perform accessibilty `activate` action to listen to text/content. */
 "[Accessibility/activateToListen]" = "Активируйте, чтобы прослушать.";
 
+/* Short name of the default/system font. For example: `Font: Default` */
+"[Appearance/DefaultFont/shortTitle]" = "Стандартный";
+
+/* Title of a setting option: font */
+"[Appearance/Font/title]" = "Шрифт";
+
 /* Title of a setting option: font size */
 "[Appearance/TextSize/title]" = "Размер текста";
 
@@ -136,8 +142,62 @@
 /* Action: add/import an image as a custom icon */
 "[Database/CustomIcon/add]" = "Добавить свой значок";
 
+/* Action: download icon of a website */
+"[Database/CustomIcon/DownloadFavicon/action]" = "Загрузить значок сайта";
+
+/* Action/button to download favicons of websites mentioned in selected entries. */
+"[Database/CustomIcon/DownloadFavicons/action]" = "Загрузка значков сайтов";
+
+/* Report of favicon download results. */
+"[Database/CustomIcon/DownloadFavicons/stats]" = "Обработано записей: %1$d\nОбновлено значков: %2$d";
+
+/* Status message: multiple website favicons are being downloaded */
+"[Database/CustomIcon/DownloadFavicons/status]" = "Загрузка значков сайтов";
+
+/* Status message: a website favicon is being downloaded */
+"[Database/CustomIcon/DownloadOneFavicon/status]" = "Загрузка значка сайта";
+
 /* Message to confirm deletion of a database file. (This deletes the file itself) */
 "[Database/Delete/Confirm/text] Delete database file?\n Make sure you have a backup." = "Удалить файл базы паролей?\nУбедитесь, что у вас есть резервная копия.";
+
+/* Action to modify database encryption settings. */
+"[Database/EncryptionSettings/Change/action]" = "Изменить настройки шифрования";
+
+/* Parameter name in database encryption settings. Example: 'Encryption Algorithm: AES-256' */
+"[Database/EncryptionSettings/dataCipher]" = "Алгоритм шифрования";
+
+/* Parameter name in database encryption settings. Defines the number of times/iterations a calculation (transform) should be executed. Example: 'Transform Rounds: 100' */
+"[Database/EncryptionSettings/iterations]" = "Циклов преобразования";
+
+/* Parameter name in database encryption settings. This is a term, see https://en.wikipedia.org/wiki/Key_derivation_function. Example: 'Key Derivation Function: Argon2' */
+"[Database/EncryptionSettings/kdf]" = "Функция формирования ключа";
+
+/* Parameter name in database encryption settings. Defines the amount of memory that should be used by an algorithm. Example: 'Memory Usage: 16 MB' */
+"[Database/EncryptionSettings/memory]" = "Использование памяти";
+
+/* Warning for too high value of the `Memory usage` parameter in database encryption settings. */
+"[Database/EncryptionSettings/memoryAutoFillWarning]" = "Высокие требования к памяти могут сделать эту базу несовместимой с функцией автозаполнения паролей.";
+
+/* Action/button button in database encryption settings. Resets the settings to recommended values. */
+"[Database/EncryptionSettings/reset]" = "Восстановить рекомендуемые настройки";
+
+/* Parameter name in database encryption settings. Defines the number of computations to run in parallel/simultaneously. Example: 'Parallelism: 2 threads' */
+"[Database/EncryptionSettings/threads]" = "Параллелизм";
+
+/* Title: database encryption settings. */
+"[Database/EncryptionSettings/title]" = "Настройки шифрования";
+
+/* Info message when changing database file format. */
+"[Database/FormatVersion/Conversion/allDataPreserved]" = "Все ваши данные будут сохранены.";
+
+/* Info message when the app needs to change database file format. [oldFormat, newFormat: String] */
+"[Database/FormatVersion/Upgrade/text]" = "Необходимо обновить формат базы данных (с %1$@ на %2$@). Может потребоваться обновить другие приложения, использующие эту базу данных.";
+
+/* Title of an info message when the app needs to change database file format. */
+"[Database/FormatVersion/Upgrade/title]" = "Прежде чем продолжить";
+
+/* Status of a database item (entry or group) after it was edited. */
+"[Database/Item/Edited/state]" = "Изменено";
 
 /* Notification when user tries to copy data from KDBX to older KDB database. */
 "[Database/LesserTargetFormat/warning]" = "Это старый формат базы данных, некоторые данные могут быть потеряны.";
@@ -175,6 +235,9 @@
 /* Status message: loading a database */
 "[Database/Loading/Status] Loading..." = "Загрузка...";
 
+/* Action/button: change master key of a database. */
+"[Database/MasterKey/Change/action]" = "Сменить мастер-ключ";
+
 /* Notification after changing database master key */
 "[Database/MasterKey/changed] Master key successfully changed" = "Мастер-ключ успешно изменён";
 
@@ -202,6 +265,9 @@
 /* Title of a warning message, shown after opening a problematic database */
 "[Database/Opened/Warning/title] Your database is ready, but there was an issue." = "База паролей готова, но есть проблема.";
 
+/* Title of a list with database-related actions (e.g. lock database, change master key, etc) */
+"[Database/Operations/title]" = "Операции с базой данных";
+
 /* Status message: preparing database print preview. */
 "[Database/Print/preparingPreview]" = "Подготовка просмотра…";
 
@@ -226,8 +292,14 @@
 /* Suggested solution/call to action when intermediate sync app fails. */
 "[Database/RecommendRemote/callToAction]" = "Попробуйте подключиться к удалённому хранилищу прямо из KeePassium.";
 
+/* Action/button */
+"[Database/Reload/action]" = "Перезагрузить базу данных";
+
 /* Message to confirm removal of database file from the app. (This keeps the file, but removes its reference from the app.) */
 "[Database/Remove/Confirm/text] Remove database from the list?\n The file will remain intact and you can add it again later." = "Убрать базу паролей из списка?\nФайл останется нетронутым, вы сможете добавить его позже.";
+
+/* Action/button to save the current database. */
+"[Database/Save/action] Save Database" = "Сохранить базу паролей";
 
 /* Status message: finished saving a database */
 "[Database/Saving/Status] Done" = "Готово";
@@ -463,6 +535,9 @@
 /* Notification/confirmation message */
 "[Diagnostics] Diagnostic log has been copied to clipboard." = "Журнал диагностики скопирован в буфер обмена.";
 
+/* Action: select a different icon for an item */
+"[EditEntry/Icon/change]" = "Сменить значок";
+
 /* Action: choose a username from a list */
 "[EditEntry/UserName/choose]" = "Выбрать";
 
@@ -498,6 +573,9 @@
 
 /* Action: copy a reference to the selected entry field to clipboard */
 "[Entry/Field/CopyReference/action]" = "Скопировать ссылку на поле";
+
+/* Name of an entry field */
+"[Entry/Field/name] Icon" = "Значок";
 
 /* Name of an entry field */
 "[Entry/Field/name] Notes" = "Заметки";
@@ -841,6 +919,9 @@
 /* Checkbox/Button to show a text field in its full size */
 "[Generic] Show more" = "Развернуть";
 
+/* Action/button to select some items in a list. */
+"[Generic/Action/SelectItems]" = "Выбрать";
+
 /* Message to confirm deletion of an item. */
 "[Generic/ConfirmDelete/title] Are you sure?" = "Вы уверены?";
 
@@ -886,6 +967,9 @@
 /* Title of an warning message */
 "[Generic/title] Warning" = "Внимание";
 
+/* Warning message template. Swap the icon and message for right-to-left languages. */
+"[Generic/WarningWithIcon/template]" = "⚠️ %@";
+
 /* VoiceOver description of a group [groupTitle: String, itemCount: Int] */
 "[Group/a11y/description]" = "%@, группа";
 
@@ -906,6 +990,9 @@
 
 /* Title of the confirmation dialog for `Empty Recycle Bin` action */
 "[Group/RecycleBin/Empty/confirmTitle]" = "Окончательно удалить всё в Корзине?";
+
+/* Title of an input field for group name */
+"[GroupEditor/Name/placeholder]" = "Название группы";
 
 /* An option in Group Viewer settings. Example: 'Sort Order: By Creation Date (New..Old)' */
 "[GroupSortOrder/longTitle] By Creation Date (New..Old)" = "По дате создания (новые..старые)";
@@ -957,6 +1044,45 @@
 
 /* Notification that an archived/historical item (e.g entry) has been successfully restored */
 "[Item/History/Restored]" = "Предыдущая версия восстановлена";
+
+/* Title of a list with advanced/expert-level properties of a database item (e.g. entry) */
+"[Item/Properties/Advanced/title]" = "Дополнительно";
+
+/* Possible value of the `Password AutoFill` setting. For example: 'Password AutoFill: Allowed' */
+"[Item/Properties/AutoFill/allowed]" = "Разрешено";
+
+/* Possible value of the `Password AutoFill` setting. For example: 'Password AutoFill: Disabled' */
+"[Item/Properties/AutoFill/disabled]" = "Отключено";
+
+/* Title of a setting: whether the item (e.g. entry) should be used in AutoFill feature. App-specific setting for KeePassXC. */
+"[Item/Properties/AutoFill/KeePassXC/title]" = "Автозаполнение паролей (KeePassXC)";
+
+/* Title of a setting: whether the item (e.g. entry) should be used in AutoFill feature */
+"[Item/Properties/AutoFill/title]" = "Автозаполнение паролей";
+
+/* Default value of an item property. For example: 'Password Audit: Inherit from parent group (Allowed)'. [inheritedValue: String] */
+"[Item/Properties/inheritedValue]" = "Наследовать от родительской группы (%@)";
+
+/* Possible value of the `Password Audit` setting. For example: 'Password Audit: Allowed' */
+"[Item/Properties/PasswordAudit/allowed]" = "Разрешён";
+
+/* Possible value of the `Password Audit` setting. For example: 'Password Audit: Disabled' */
+"[Item/Properties/PasswordAudit/disabled]" = "Отключён";
+
+/* Title of a setting: whether the item (e.g. entry) should be included in password audit */
+"[Item/Properties/PasswordAudit/title]" = "Аудит паролей";
+
+/* Possible value of the `Search` setting. Example: 'Search: Allowed' */
+"[Item/Properties/Search/allowed]" = "Разрешён";
+
+/* Possible value of the `Search` setting, when the item should be excluded from search results. Example: 'Search: Disabled' */
+"[Item/Properties/Search/disabled]" = "Отключён";
+
+/* Title of a setting: whether the item (e.g. entry) should be considered during search. Example: 'Search: Allowed' */
+"[Item/Properties/Search/title] Search" = "Поиск";
+
+/* Title of a list with item (e.g. entry) properties/settings, such as searchability, auto-typing, etc */
+"[Item/Properties/title]" = "Свойства";
 
 /* Name of an entry/group category (visual style): default one, like in KeePass */
 "[ItemCategory] Default (KeePass)" = "По умолчанию (KeePass)";
@@ -1174,6 +1300,9 @@
 /* List of premium benefits/advantages */
 "[Premium/Benefits/Negative/header] " = "Что вы упускаете";
 
+/* Title of a premium feature */
+"[Premium/Benefits/PasswordAudit/title]" = "Проверьте пароли";
+
 /* List of premium benefits/advantages */
 "[Premium/Benefits/Positive/header] " = "Что вы получите";
 
@@ -1356,6 +1485,12 @@
 
 /* Title of a premium feature: ability to use multiple databases (In Title Case) */
 "[PremiumFeature/MultiDB/title] Multiple Databases" = "Несколько баз паролей";
+
+/* Description/call to action for the `Password Audit` premium feature. */
+"[PremiumFeature/PasswordAudit/description]" = "Узнайте, были ли обнародованы какие-либо ваши пароли из-за утечек данных.";
+
+/* Title of a premium feature: discover which passwords are known to be compromized */
+"[PremiumFeature/PasswordAudit/title]" = "Аудит паролей";
 
 /* Description/advertisement for the `Preview Attachments` premium feature */
 "[PremiumFeature/Preview/description] Preview images and documents directly in the app, in the premium version." = "Просматривайте изображения и документы прямо в премиум-версии программы.";
@@ -1585,6 +1720,9 @@
 /* Title of list view configuration screen */
 "[Settings/ListSettings/title]" = "Вид списка";
 
+/* Notification when corporate user tries to change an app setting controlled by organization's IT department. */
+"[Settings/Managed/notification]" = "Этим параметром управляет ваша организация.";
+
 /* Confirmation dialog message */
 "[Settings/NetworkAccess/Confirmation/text]" = "Разрешить KeePassium устанавливать сетевые подключения к внешним службам?";
 
@@ -1602,6 +1740,9 @@
 
 /* Setting option: the app is permitted to use online features */
 "[Settings/NetworkAccessMode/Online/title]" = "Разрешить доступ к сети";
+
+/* Action/button which resets some settings to their default state. */
+"[Settings/RestoreDefaults/action]" = "Сбросить настройки";
 
 /* Section title in settings */
 "[Settings/Search/title]" = "Поиск";

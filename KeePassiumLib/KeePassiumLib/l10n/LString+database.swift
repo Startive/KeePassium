@@ -1,20 +1,21 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
 //  by the Free Software Foundation: https://www.gnu.org/licenses/).
 //  For commercial licensing, please contact the author.
 
+// swiftlint:disable line_length
 extension LString {
-    
+
     public static let keyFileErrorTemplate = NSLocalizedString(
         "[Database/Unlock] Key file error: %@",
         bundle: Bundle.framework,
         value: "Key file error: %@",
         comment: "Error message related to key file. [errorDetails: String]")
-    
-    
+
+
     public static let titleSyncConflict = NSLocalizedString(
         "[Database/SyncConflict/title]",
         bundle: Bundle.framework,
@@ -27,7 +28,7 @@ extension LString {
         value: "The database has changed since it was loaded in KeePassium.",
         comment: "Message shown in case of database sync conflict."
     )
-    
+
     public static let syncConflictLoadedVersion = NSLocalizedString(
         "[Database/SyncConflict/loadedVersion]",
         bundle: Bundle.framework,
@@ -40,14 +41,14 @@ extension LString {
         value: "Current version",
         comment: "Title: the current (on-server) database version in case of sync conflict."
     )
-    
+
     public static let conflictResolutionOverwriteAction = LString.actionOverwrite
     public static let conflictResolutionOverwriteDescription = NSLocalizedString(
         "[Database/SyncConflict/Overwrite/description]",
         bundle: Bundle.framework,
         value: "Overwrite target file with the local version.",
         comment: "Explanation of the database sync conflict `Overwrite` option.")
-    
+
     public static let conflictResolutionSaveAsAction = LString.actionFileSaveAs
     public static let conflictResolutionSaveAsDescription = NSLocalizedString(
         "[Database/SyncConflict/SaveAs/description]",
@@ -65,16 +66,15 @@ extension LString {
         bundle: Bundle.framework,
         value: "Combine changes before saving.",
         comment: "Explanation of the database sync conflict `Merge` option.")
-    
+
     public static let conflictResolutionCancelAction = LString.actionCancel
     public static let conflictResolutionCancelDescription = NSLocalizedString(
         "[Database/SyncConflict/Cancel/description]",
         bundle: Bundle.framework,
         value: "Cancel saving, leave target file intact.",
         comment: "Explanation of the database sync conflict `Cancel` option.")
-    
-    
-    
+
+
     public static let hardwareKeyNotAvailableInAutoFill = NSLocalizedString(
         "[HardwareKey/AutoFill/NotAvailable] Hardware keys are not available in AutoFill.",
         bundle: Bundle.framework,
@@ -85,15 +85,15 @@ extension LString {
         bundle: Bundle.framework,
         value: "NFC requires iOS 13 or later.",
         comment: "A notification that NFC (Near Field Communication) interface is not supported by the current iOS version.")
-    
-    
+
+
     public static let titleDatabaseSettings = NSLocalizedString(
         "[Database/Settings/title]",
         bundle: Bundle.framework,
         value: "Database Settings",
         comment: "Title of database-related settings screen"
     )
-    
+
     public static let titleSettingsFileAccess = NSLocalizedString(
         "[Database/Settings/FileAccess/title]",
         bundle: Bundle.framework,
@@ -106,7 +106,7 @@ extension LString {
         bundle: Bundle.framework,
         value: "Read Only",
         comment: "File setting title, whether the file can be modified (yes/no).")
-    
+
     public static let titleConsiderFileUnreachable = NSLocalizedString(
         "[Database/Settings/ConsiderFileUnreachable/title]",
         bundle: Bundle.framework,
@@ -118,27 +118,82 @@ extension LString {
         bundle: Bundle.framework,
         value: "If File is Unreachable",
         comment: "File settings parameter: what to do when (remote) file cannot be loaded. (For example: `If File is Unreachable: Use Local Copy`.)")
-    
+
     public static let titleIfFileUnreachableShowError = NSLocalizedString(
         "[Database/Settings/FallbackStrategy/ShowError/title]",
         bundle: Bundle.framework,
         value: "Show Error",
         comment: "Title: what to do when (remote) file cannot be loaded. (For example: `If File is Unreachable: Show Error`.)")
-    
+
     public static let titleIfFileUnreachableUseCache = NSLocalizedString(
         "[Database/Settings/FallbackStrategy/UseCache/title]",
         bundle: Bundle.framework,
         value: "Use Local Copy",
         comment: "Title: what to do when (remote) file cannot be loaded. (For example: `If File is Unreachable: Use Local Copy`.)")
-    
+
     public static let titleIfFileUnreachableReAddFile = NSLocalizedString(
         "[Database/Settings/FallbackStrategy/ReAddFile/title]",
         bundle: Bundle.framework,
         value: "Re-add File",
         comment: "Title: what to do when a cloud-stored file cannot be loaded. (For example: `If File is Unreachable: Re-add File`.)")
 
-    
-    
+
+    public static let actionChangeEncryptionSettings = NSLocalizedString(
+        "[Database/EncryptionSettings/Change/action]",
+        bundle: Bundle.framework,
+        value: "Change Encryption Settings",
+        comment: "Action to modify database encryption settings."
+    )
+    public static let titleEncryptionSettings = NSLocalizedString(
+        "[Database/EncryptionSettings/title]",
+        bundle: Bundle.framework,
+        value: "Encryption Settings",
+        comment: "Title: database encryption settings."
+    )
+    public static let encryptionSettingsDataCipher = NSLocalizedString(
+        "[Database/EncryptionSettings/dataCipher]",
+        bundle: Bundle.framework,
+        value: "Encryption Algorithm",
+        comment: "Parameter name in database encryption settings. Example: 'Encryption Algorithm: AES-256'"
+    )
+    public static let encryptionSettingsKDF = NSLocalizedString(
+        "[Database/EncryptionSettings/kdf]",
+        bundle: Bundle.framework,
+        value: "Key Derivation Function",
+        comment: "Parameter name in database encryption settings. This is a term, see https://en.wikipedia.org/wiki/Key_derivation_function. Example: 'Key Derivation Function: Argon2'"
+    )
+    public static let encryptionSettingsIterations = NSLocalizedString(
+        "[Database/EncryptionSettings/iterations]",
+        bundle: Bundle.framework,
+        value: "Transform Rounds",
+        comment: "Parameter name in database encryption settings. Defines the number of times/iterations a calculation (transform) should be executed. Example: 'Transform Rounds: 100'"
+    )
+    public static let encryptionSettingsMemory = NSLocalizedString(
+        "[Database/EncryptionSettings/memory]",
+        bundle: Bundle.framework,
+        value: "Memory Usage",
+        comment: "Parameter name in database encryption settings. Defines the amount of memory that should be used by an algorithm. Example: 'Memory Usage: 16 MB'"
+    )
+    public static let encryptionSettingsThreads = NSLocalizedString(
+        "[Database/EncryptionSettings/threads]",
+        bundle: Bundle.framework,
+        value: "Parallelism",
+        comment: "Parameter name in database encryption settings. Defines the number of computations to run in parallel/simultaneously. Example: 'Parallelism: 2 threads'"
+    )
+    public static let encryptionSettingsReset = NSLocalizedString(
+        "[Database/EncryptionSettings/reset]",
+        bundle: Bundle.framework,
+        value: "Reset to Recommended Settings",
+        comment: "Action/button button in database encryption settings. Resets the settings to recommended values."
+    )
+    public static let encryptionMemoryAutoFillWarning = NSLocalizedString(
+        "[Database/EncryptionSettings/memoryAutoFillWarning]",
+        bundle: Bundle.framework,
+        value: "High memory requirements can make this database incompatible with Password AutoFill.",
+        comment: "Warning for too high value of the `Memory usage` parameter in database encryption settings."
+    )
+
+
     public static let callToActionChooseDestinationGroup = NSLocalizedString(
         "[General/DestinationGroup/title] Choose a Destination",
         bundle: Bundle.framework,
@@ -150,8 +205,8 @@ extension LString {
         value: "Switch Database",
         comment: "Action/button to switch from current to some other database."
     )
-    
-    
+
+
     public static let titleEntrySubtitle = NSLocalizedString(
         "[Settings/GroupViewer] Entry Subtitle",
         bundle: Bundle.framework,
@@ -167,8 +222,23 @@ extension LString {
         bundle: Bundle.framework,
         value: "List Settings",
         comment: "Title of list view configuration screen")
-    
-    
+
+
+    public static let titleGroupName = NSLocalizedString(
+        "[GroupEditor/Name/placeholder]",
+        bundle: Bundle.framework,
+        value: "Group Name",
+        comment: "Title of an input field for group name"
+    )
+
+
+    public static let actionChangeIcon = NSLocalizedString(
+        "[EditEntry/Icon/change]",
+        bundle: Bundle.framework,
+        value: "Change Icon",
+        comment: "Action: select a different icon for an item"
+    )
+
     public static let actionChooseUserName = NSLocalizedString(
         "[EditEntry/UserName/choose]",
         bundle: Bundle.framework,
@@ -176,34 +246,34 @@ extension LString {
         comment: "Action: choose a username from a list"
     )
 
-    
+
     public static let statusLoadingAttachmentFile = NSLocalizedString(
         "[Entry/Files/Add] Loading attachment file",
         bundle: Bundle.framework,
         value: "Loading attachment file",
         comment: "Status message: loading file to be attached to an entry")
-    
+
     public static let itemCategoryDefault = NSLocalizedString(
         "[ItemCategory] Default (KeePass)",
         bundle: Bundle.framework,
         value: "Default (KeePass)",
         comment: "Name of an entry/group category (visual style): default one, like in KeePass"
     )
-    
+
     public static let actionPreviewAttachments = NSLocalizedString(
         "[Entry/Attachments/preview]",
         bundle: Bundle.framework,
         value: "Preview",
         comment: "Action to preview one or several attached documents or images"
     )
-    
+
     public static let titleEntryPreviousVersions = NSLocalizedString(
         "[Entry/History] Previous Versions",
         bundle: Bundle.framework,
         value: "Previous Versions",
         comment: "Title of a list with previous versions/revisions of an entry.")
-    
-    
+
+
     public static let titleShowBackupFiles = NSLocalizedString(
         "Show Backup Files",
         bundle: Bundle.framework,
@@ -216,7 +286,7 @@ extension LString {
         value: "No database files",
         comment: "Placeholder shown when there are no database files available")
 
-    
+
     public static let databaseLastEditedByTemplate = NSLocalizedString(
         "[Database/Opened/Warning/lastEdited] Database was last edited by: %@",
         bundle: Bundle.framework,
@@ -237,4 +307,29 @@ extension LString {
         bundle: Bundle.framework,
         value: "Close Database",
         comment: "Action: lock database")
+
+
+    public static let titleDatabaseFormatVersionUpgrade = NSLocalizedString(
+        "[Database/FormatVersion/Upgrade/title]",
+        bundle: Bundle.framework,
+        value: "Before we continue",
+        comment: "Title of an info message when the app needs to change database file format.")
+    public static let databaseFormatVersionUpgradeMessageTemplate = NSLocalizedString(
+        "[Database/FormatVersion/Upgrade/text]",
+        bundle: Bundle.framework,
+        value: "KeePassium needs to upgrade your database file format (from %@ to %@). You might need to update other apps that use this database.",
+        comment: "Info message when the app needs to change database file format. [oldFormat, newFormat: String]")
+    public static let titleDatabaseFormatConversionAllDataPreserved = NSLocalizedString(
+        "[Database/FormatVersion/Conversion/allDataPreserved]",
+        bundle: Bundle.framework,
+        value: "All your data will be preserved.",
+        comment: "Info message when changing database file format.")
+
+
+    public static let statusItemEdited = NSLocalizedString(
+        "[Database/Item/Edited/state]",
+        bundle: Bundle.framework,
+        value: "Edited",
+        comment: "Status of a database item (entry or group) after it was edited.")
 }
+// swiftlint:enable line_length

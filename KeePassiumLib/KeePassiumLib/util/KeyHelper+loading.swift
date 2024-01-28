@@ -1,5 +1,5 @@
 //  KeePassium Password Manager
-//  Copyright © 2018–2023 Andrei Popleteev <info@keepassium.com>
+//  Copyright © 2018–2024 KeePassium Labs <info@keepassium.com>
 //
 //  This program is free software: you can redistribute it and/or modify it
 //  under the terms of the GNU General Public License version 3 as published
@@ -26,7 +26,7 @@ public extension KeyHelper {
             )
             return
         }
-        
+
         FileDataProvider.read(keyFileRef, timeout: timeout, completionQueue: nil) { result in
             assert(!Thread.isMainThread)
             switch result {
@@ -46,7 +46,7 @@ public extension KeyHelper {
             }
         }
     }
-    
+
     private func buildCompositeKey(
         password: String,
         keyFileData: SecureBytes,
@@ -61,7 +61,7 @@ public extension KeyHelper {
                 completion(.failure(LString.Error.passwordAndKeyFileAreBothEmpty))
             }
         }
-        
+
         do {
             let staticComponents = try self.combineComponents(
                 passwordData: passwordData, 
